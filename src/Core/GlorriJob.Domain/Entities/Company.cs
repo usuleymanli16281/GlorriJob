@@ -15,7 +15,6 @@ namespace GlorriJob.Domain.Entities
 		public string LogoPath { get; set; } = null!;
 		public string? PosterPath { get; set; } = null!;
 		public int ExistedVacancy { get; set; }
-		public Guid CompanyDetailId { get; set; }
 		public CompanyDetail CompanyDetail { get; set; } = null!;
 		public Guid IndustryId { get; set; }
 		public Industry Industry { get; set; } = null!;

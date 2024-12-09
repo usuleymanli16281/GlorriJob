@@ -10,4 +10,8 @@
     <Folder Include="Storages\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\GlorriJob.Application\GlorriJob.Application.csproj" />
+  </ItemGroup>
+
 </Project>

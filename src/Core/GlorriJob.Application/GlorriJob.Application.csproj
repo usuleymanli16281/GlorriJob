@@ -12,4 +12,8 @@
     <Folder Include="Dtos\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GlorriJob.Domain\GlorriJob.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
