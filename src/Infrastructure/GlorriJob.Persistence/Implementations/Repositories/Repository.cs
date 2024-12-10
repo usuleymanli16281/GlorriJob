@@ -9,60 +9,70 @@ namespace GlorriJob.Persistence.Implementations.Repositories;
 public class Repository<T> : IRepository<T> where T : BaseEntity
 {
     private readonly DbContext _context;
-    private readonly DbSet<T> _dbSet;
 
     public Repository(DbContext context)
     {
         _context = context;
-        _dbSet = context.Set<T>();
     }
-    public DbSet<T> Table => throw new NotImplementedException();
+
+    public DbSet<T> Table => _context.Set<T>();
 
     public async Task AddAsync(T entity)
     {
-        await _dbSet.AddAsync(entity);
+        await Table.AddAsync(entity);
     }
 
     public bool Delete(Guid id)
     {
-        var entity = _dbSet.Find(id);
+        var entity = Table.Find(id);
         if (entity != null)
         {
-            _dbSet.Remove(entity);
+            Table.Remove(entity);
             return true;
         }
         return false;
     }
 
-    public async Task<IQueryable<T>> GetAll()
+    public IQueryable<T> GetAll()
     {
-        return await Task.FromResult(_dbSet.AsQueryable());
+        return Table.AsNoTracking();
     }
 
-    public async Task<IQueryable<T>> GetAllWhere(Expression<Func<T, bool>> expression, Expression<Func<T, object>> orderBy, bool isTracking, params string[] includes)
+    public IQueryable<T> GetAllWhere(Expression<Func<T, bool>> expression, Expression<Func<T, object>> orderBy, bool isTracking, params string[] includes)
     {
-        return await Task.FromResult(_dbSet.Where(expression));
-    }
-
-    public async Task<T?> GetByIdAsync(Guid id)
-    {
-        return await _dbSet.FindAsync(id);
-    }
-
-    public async Task<IQueryable<T>> GetFiltered(Expression<Func<T, bool>> expression, Expression<Func<T, object>> orderBy, bool isTracking, params string[] includes)
-    {
-        IQueryable<T> query = _dbSet.Where(expression);
+        IQueryable<T> query = Table.Where(expression);
         foreach (var include in includes)
         {
             query = query.Include(include);
         }
-        
+
         if (!isTracking)
         {
             query = query.AsNoTracking();
         }
+
         query = query.OrderBy(orderBy);
-        return await Task.FromResult(query);
+        return query;
+    }
+
+    public async Task<T?> GetByIdAsync(Guid id)
+    {
+        return await Table.FindAsync(id);
+    }
+
+    public async Task<T?> GetFiltered(Expression<Func<T, bool>> expression, bool isTracking = false, params string[] includes)
+    {
+        IQueryable<T> query = Table.Where(expression);
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        if (!isTracking)
+        {
+            query = query.AsNoTracking();
+        }
+        return await query.FirstOrDefaultAsync();
     }
 
     public async Task SaveChangesAsync()
@@ -72,7 +82,7 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public bool Update(T entity)
     {
-        _dbSet.Update(entity);
+        Table.Update(entity);
         return true;
     }
 }
