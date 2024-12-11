@@ -16,9 +16,9 @@ namespace GlorriJob.Application.Abstractions.Repositories
         IQueryable<T> GetAll();
         IQueryable<T> GetAllWhere(Expression<Func<T, bool>> expression, Expression<Func<T, object>> orderBy, bool isTracking, params string[] includes);
         Task<T?> GetFiltered(Expression<Func<T, bool>> expression, bool isTracking, params string[] includes);
-        Task AddAsync(T entity);
+        Task<bool> AddAsync(T entity);
         bool Update(T entity);
-        bool Delete(Guid id);
+        bool Delete(T Entity);
         Task SaveChangesAsync();
     }
 }

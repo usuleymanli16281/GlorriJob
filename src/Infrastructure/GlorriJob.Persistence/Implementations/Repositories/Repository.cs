@@ -1,6 +1,7 @@
 ﻿using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.VisualBasic;
 using System.Linq.Expressions;
 
@@ -8,7 +9,7 @@ namespace GlorriJob.Persistence.Implementations.Repositories;
 
 public class Repository<T> : IRepository<T> where T : BaseEntity
 {
-    private readonly DbContext _context;
+    private DbContext _context { get; }
 
     public Repository(DbContext context)
     {
@@ -17,20 +18,16 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public DbSet<T> Table => _context.Set<T>();
 
-    public async Task AddAsync(T entity)
+    public async Task<bool> AddAsync(T entity)
     {
-        await Table.AddAsync(entity);
+        EntityEntry<T> entityEntry =  await Table.AddAsync(entity);
+        return entityEntry.State == EntityState.Added;
     }
 
-    public bool Delete(Guid id)
+    public bool Delete(T entity)
     {
-        var entity = Table.Find(id);
-        if (entity != null)
-        {
-            Table.Remove(entity);
-            return true;
-        }
-        return false;
+        EntityEntry<T> entityEntry = Table.Remove(entity);
+        return entityEntry.State == EntityState.Deleted;
     }
 
     public IQueryable<T> GetAll()
@@ -38,20 +35,24 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         return Table.AsNoTracking();
     }
 
-    public IQueryable<T> GetAllWhere(Expression<Func<T, bool>> expression, Expression<Func<T, object>> orderBy, bool isTracking, params string[] includes)
+    public IQueryable<T> GetAllWhere(Expression<Func<T, bool>> expression, Expression<Func<T, object>>? orderBy = null, bool isTracking = false, params string[] includes)
     {
         IQueryable<T> query = Table.Where(expression);
-        foreach (var include in includes)
-        {
-            query = query.Include(include);
-        }
-
-        if (!isTracking)
+		if (includes is not null)
+		{
+			foreach (var include in includes)
+			{
+				query = query.Include(include);
+			}
+		}
+		if (!isTracking)
         {
             query = query.AsNoTracking();
         }
-
-        query = query.OrderBy(orderBy);
+        if (orderBy is not null)
+        {
+            query = query.OrderBy(orderBy);
+        }
         return query;
     }
 
@@ -63,11 +64,13 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     public async Task<T?> GetFiltered(Expression<Func<T, bool>> expression, bool isTracking = false, params string[] includes)
     {
         IQueryable<T> query = Table.Where(expression);
-        foreach (var include in includes)
+        if (includes is not null)
         {
-            query = query.Include(include);
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
         }
-
         if (!isTracking)
         {
             query = query.AsNoTracking();
@@ -82,7 +85,7 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public bool Update(T entity)
     {
-        Table.Update(entity);
-        return true;
+        EntityEntry<T> entityEntry = Table.Update(entity);
+        return entityEntry.State == EntityState.Modified;
     }
 }
