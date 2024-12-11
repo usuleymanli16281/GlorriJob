@@ -18,16 +18,15 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public DbSet<T> Table => _context.Set<T>();
 
-    public async Task<bool> AddAsync(T entity)
+    public async Task<T> AddAsync(T entity)
     {
-        EntityEntry<T> entityEntry =  await Table.AddAsync(entity);
-        return entityEntry.State == EntityState.Added;
+        await Table.AddAsync(entity);
+        return entity;
     }
 
-    public bool Delete(T entity)
+    public void Delete(T entity)
     {
-        EntityEntry<T> entityEntry = Table.Remove(entity);
-        return entityEntry.State == EntityState.Deleted;
+        Table.Remove(entity);
     }
 
     public IQueryable<T> GetAll()
@@ -35,7 +34,14 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         return Table.AsNoTracking();
     }
 
-    public IQueryable<T> GetAllWhere(Expression<Func<T, bool>> expression, Expression<Func<T, object>>? orderBy = null, bool isTracking = false, params string[] includes)
+    public IQueryable<T> GetAll(
+        Expression<Func<T, bool>> expression, 
+        Expression<Func<T, object>>? orderBy = null, 
+        bool isAscending = true ,
+        bool isTracking = false, 
+        int skip = 0, 
+        int take = 10, 
+        params string[] includes)
     {
         IQueryable<T> query = Table.Where(expression);
 		if (includes is not null)
@@ -51,17 +57,21 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         }
         if (orderBy is not null)
         {
-            query = query.OrderBy(orderBy);
+            query = isAscending ? query.OrderBy(orderBy) : query.OrderByDescending(orderBy);
         }
+        query = query.Skip(skip).Take(take);
         return query;
     }
 
     public async Task<T?> GetByIdAsync(Guid id)
     {
-        return await Table.FindAsync(id);
+        return await Table.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public async Task<T?> GetFiltered(Expression<Func<T, bool>> expression, bool isTracking = false, params string[] includes)
+    public async Task<T?> GetFiltered(
+        Expression<Func<T, bool>> expression, 
+        bool isTracking = false, 
+        params string[] includes)
     {
         IQueryable<T> query = Table.Where(expression);
         if (includes is not null)
@@ -83,9 +93,14 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         await _context.SaveChangesAsync();
     }
 
-    public bool Update(T entity)
+    public T Update(T entity)
     {
-        EntityEntry<T> entityEntry = Table.Update(entity);
-        return entityEntry.State == EntityState.Modified;
+        Table.Update(entity);
+        return entity;
     }
+
+	public IQueryable<T> GetAll(Expression<Func<T, bool>> expression, Expression<Func<T, object>> orderBy, bool isAscending, int skip, int take, bool isTracking, params string[] includes)
+	{
+		throw new NotImplementedException();
+	}
 }
