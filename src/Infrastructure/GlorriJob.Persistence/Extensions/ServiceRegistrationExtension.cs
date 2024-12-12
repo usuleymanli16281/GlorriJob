@@ -17,7 +17,7 @@ namespace GlorriJob.Persistence.Extensions
 		public static IServiceCollection AddPersistentServices(this IServiceCollection services, IConfiguration configuration)
 		{
 			services.AddDbContext<GlorriJobDbContext>(opt => opt.UseNpgsql(configuration.GetConnectionString("Default")));
-			services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+			services.AddScoped<ICityRepository, CityRepository>();
 			return services;
 		}
 	}
