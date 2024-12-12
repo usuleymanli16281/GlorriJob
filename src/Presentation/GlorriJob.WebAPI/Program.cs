@@ -1,4 +1,7 @@
+using GlorriJob.Application.Abstractions.Services;
+using GlorriJob.Domain.Entities;
 using GlorriJob.Persistence.Extensions;
+using GlorriJob.Persistence.Implementations.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +19,10 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
-
+#region Services
+builder.Services.AddScoped<ICityService, ICityService>();
+builder.Services.AddAutoMapper(typeof(Program));
+#endregion
 app.UseAuthorization();
 
 app.MapControllers();
