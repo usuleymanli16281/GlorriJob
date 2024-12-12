@@ -1,5 +1,6 @@
 ﻿using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Domain.Entities.Common;
+using GlorriJob.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.VisualBasic;
@@ -9,9 +10,9 @@ namespace GlorriJob.Persistence.Implementations.Repositories;
 
 public class Repository<T> : IRepository<T> where T : BaseEntity
 {
-    private DbContext _context { get; }
+    private GlorriJobDbContext _context { get; }
 
-    public Repository(DbContext context)
+    public Repository(GlorriJobDbContext context)
     {
         _context = context;
     }

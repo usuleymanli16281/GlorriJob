@@ -1,6 +1,7 @@
 ﻿using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Entities.Common;
+using GlorriJob.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace GlorriJob.Persistence.Implementations.Repositories
 {
 	public class CityRepository : Repository<City>, ICityRepository
 	{
-        public CityRepository(DbContext context) : base(context)
+        public CityRepository(GlorriJobDbContext context) : base(context)
         {
             
         }
