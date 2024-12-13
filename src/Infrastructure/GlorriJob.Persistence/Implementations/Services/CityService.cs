@@ -19,20 +19,20 @@ internal class CityService : ICityService
         _cityRepository = cityRepository;
         _mapper = mapper;
     }
-    public async Task<CityGetDto> CreateAsync(CityCreateDto createCityDto)
+    public async Task<CityGetDto> CreateAsync(CityCreateDto cityCreateDto)
     {
         var existedCity = await _cityRepository.GetByFilter(expression:
-            c => c.Name == createCityDto.Name && !c.IsDeleted,
+            c => c.Name == cityCreateDto.Name && !c.IsDeleted,
             isTracking: false);
 
         if (existedCity is not null)
         {
-            throw new AlreadyExistsException($"A city with the name '{createCityDto.Name}' already exists.");
+            throw new AlreadyExistsException($"A city with the name '{cityCreateDto.Name}' already exists.");
         }
-        var createdCity = _mapper.Map<City>(createCityDto);
+        var createdCity = _mapper.Map<City>(cityCreateDto);
         await _cityRepository.AddAsync(createdCity);
         await _cityRepository.SaveChangesAsync();
-        return _mapper.Map<CityGetDto>(createCityDto);
+        return _mapper.Map<CityGetDto>(createdCity);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -58,10 +58,10 @@ internal class CityService : ICityService
             int skip = (pageNumber - 1) * pageSize;
             query = query.Skip(skip).Take(pageSize);
         }
-		List<CityGetDto> cities = await query.Select(c => new CityGetDto { Id = c.Id, Name = c.Name}).ToListAsync();
+		List<CityGetDto> cityGetDtos = await query.Select(c => new CityGetDto { Id = c.Id, Name = c.Name}).ToListAsync();
 		return new Pagination<CityGetDto>
 		{
-			Items = cities,
+			Items = cityGetDtos,
 			TotalCount = totalItems,
 			PageIndex = pageNumber,
 			PageSize = isPaginated ? pageSize : totalItems,
@@ -93,10 +93,10 @@ internal class CityService : ICityService
 			int skip = (pageNumber - 1) * pageSize;
 			query = query.Skip(skip).Take(pageSize);
 		}
-		List<CityGetDto> cities = await query.Select(c => new CityGetDto { Id = c.Id, Name = c.Name }).ToListAsync();
+		List<CityGetDto> cityGetDtos = await query.Select(c => new CityGetDto { Id = c.Id, Name = c.Name }).ToListAsync();
 		return new Pagination<CityGetDto>
 		{
-			Items = cities,
+			Items = cityGetDtos,
 			TotalCount = totalItem,
 			PageIndex = pageNumber,
 			PageSize = isPaginated ? pageSize : totalItem,

@@ -63,7 +63,7 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public async Task<T?> GetByIdAsync(Guid id)
     {
-        return await Table.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+        return await Table.FindAsync(id);
     }
 
     public async Task<T?> GetByFilter(
