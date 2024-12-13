@@ -99,9 +99,4 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         Table.Update(entity);
         return entity;
     }
-
-	public IQueryable<T> GetAll(Expression<Func<T, bool>> expression, Expression<Func<T, object>> orderBy, bool isAscending, int skip, int take, bool isTracking, params string[] includes)
-	{
-		throw new NotImplementedException();
-	}
 }

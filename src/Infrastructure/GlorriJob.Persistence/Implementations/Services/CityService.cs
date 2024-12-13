@@ -56,38 +56,36 @@ internal class CityService : ICityService
         await _cityRepository.SaveChangesAsync();
     }
 
-    public async Task<Pagination<GetCityDto>> GetAll(int pageNumber = 1, int take = 10, bool isPaginated = false)
-    {
-        if (pageNumber < 1 || take < 1)
-        {
-            throw new InvalidPageArgumentException("Page number and take must be greater than 0.");
-        }
-        int skip = (pageNumber - 1) * take;
-        IQueryable<City> query = _cityRepository.GetAll()
-            .Where(c => !c.IsDeleted);
+	public async Task<Pagination<GetCityDto>> GetAll(int pageNumber = 1, int take = 10, bool isPaginated = false)
+	{
+		if (pageNumber < 1 || take < 1)
+			throw new InvalidPageArgumentException("Page number and take must be greater than 0.");
+
+		IQueryable<City> query = _cityRepository.GetAll(c => !c.IsDeleted);
         int totalItems = await query.CountAsync();
-        if (totalItems is 0)
+		if (totalItems == 0)
+			throw new CityNotFoundException("No cities found.");
+        if (isPaginated)
         {
-            throw new CityNotFoundException("No cities found");
+            int skip = (pageNumber - 1) * take;
+            query = _cityRepository.GetAll(expression: c => !c.IsDeleted, skip: skip, take: take);
         }
-        List<City> cities = await query.ToListAsync();
+		List<City> cities = await query.ToListAsync();
+		if (isPaginated && !cities.Any())
+			throw new PageOutOfRangeException("No cities available for the requested page.");
 
-        if (cities.Count is 0)
-        {
-            throw new PageOutOfRangeException("No cities available for the requested page.");
-        }
-        List<GetCityDto> cityDtos = _mapper.Map<List<GetCityDto>>(cities);
-        Pagination<GetCityDto> pagination = new Pagination<GetCityDto>
-        {
-            Items = cityDtos,
-            TotalCount = totalItems,
-            PageIndex = pageNumber,
-            PageSize = isPaginated ? take : totalItems
-        };
-        return pagination;
-    }
+		List<GetCityDto> cityDtos = _mapper.Map<List<GetCityDto>>(cities);
 
-    public async Task<GetCityDto> GetByIdAsync(Guid id)
+		return new Pagination<GetCityDto>
+		{
+			Items = cityDtos,
+			TotalCount = totalItems,
+			PageIndex = pageNumber,
+			PageSize = isPaginated ? take : totalItems
+		};
+	}
+
+	public async Task<GetCityDto> GetByIdAsync(Guid id)
     {
         var city = await _cityRepository.GetByIdAsync(id);
         if (city is null || city.IsDeleted)
@@ -109,10 +107,7 @@ internal class CityService : ICityService
         {
             throw new InvalidPageArgumentException("Page number and take must be greater than 0.");
         }
-        int skip = (pageNumber - 1) * take;
-        IQueryable<City> query = _cityRepository.GetAll()
-            .Where(c => !c.IsDeleted && c.Name
-            .Contains(name));
+        IQueryable<City> query = _cityRepository.GetAll(c => !c.IsDeleted && c.Name.ToLower().Contains(name));
         int totalItems = await query.CountAsync();
         if (totalItems is 0)
         {
@@ -120,14 +115,14 @@ internal class CityService : ICityService
         }
         if (isPaginated)
         {
-            query = query.Skip(skip).Take(take);
-        }
+			int skip = (pageNumber - 1) * take;
+			query = _cityRepository.GetAll(expression: c => !c.IsDeleted && c.Name.ToLower().Contains(name), skip: skip, take: take);
+		}
         List<City> cities = await query.ToListAsync();
-        if (cities.Count is 0)
-        {
-            throw new PageOutOfRangeException("No cities available for the requested page.");
-        }
-        List<GetCityDto> cityDtos = _mapper.Map<List<GetCityDto>>(cities);
+		if (isPaginated && !cities.Any())
+			throw new PageOutOfRangeException("No cities available for the requested page.");
+
+		List<GetCityDto> cityDtos = _mapper.Map<List<GetCityDto>>(cities);
         Pagination<GetCityDto> pagination = new Pagination<GetCityDto>
         {
             Items = cityDtos,
