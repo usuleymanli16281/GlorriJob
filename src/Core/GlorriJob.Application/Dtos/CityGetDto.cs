@@ -1,6 +1,6 @@
 ﻿namespace GlorriJob.Application.Dtos;
 
-public  class GetCityDto
+public  class CityGetDto
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }

@@ -8,6 +8,8 @@ public class CityProfile : Profile
 {
     public CityProfile()
     {
-        CreateMap<City, GetCityDto>().ReverseMap();
+        CreateMap<City, CityGetDto>().ReverseMap();
+        CreateMap<City, CityCreateDto>().ReverseMap();
+        CreateMap<City, CityUpdateDto>().ReverseMap();
     }
 }

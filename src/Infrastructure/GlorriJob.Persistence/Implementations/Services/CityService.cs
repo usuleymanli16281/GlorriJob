@@ -19,13 +19,8 @@ internal class CityService : ICityService
         _cityRepository = cityRepository;
         _mapper = mapper;
     }
-    public async Task<GetCityDto> CreateAsync(CreateCityDto createCityDto)
+    public async Task<CityGetDto> CreateAsync(CityCreateDto createCityDto)
     {
-        if (string.IsNullOrWhiteSpace(createCityDto.Name) || createCityDto.Name.Length < 3)
-        {
-            throw new CityNameEmptyException("City name cannot be empty or too short. It must be at least 3 characters long.");
-        }
-
         var existingCity = await _cityRepository.GetFiltered(
             c => c.Name == createCityDto.Name && !c.IsDeleted,
             isTracking: false);
@@ -41,7 +36,7 @@ internal class CityService : ICityService
         };
         await _cityRepository.AddAsync(city);
         await _cityRepository.SaveChangesAsync();
-        var getCityDto = _mapper.Map<GetCityDto>(city);
+        var getCityDto = _mapper.Map<CityGetDto>(city);
         return getCityDto;
     }
 
@@ -56,7 +51,7 @@ internal class CityService : ICityService
         await _cityRepository.SaveChangesAsync();
     }
 
-	public async Task<Pagination<GetCityDto>> GetAllAsync(int pageNumber = 1, int take = 10, bool isPaginated = false)
+	public async Task<Pagination<CityGetDto>> GetAllAsync(int pageNumber = 1, int take = 10, bool isPaginated = false)
 	{
 		if (pageNumber < 1 || take < 1)
 			throw new InvalidPageArgumentException("Page number and take must be greater than 0.");
@@ -74,9 +69,9 @@ internal class CityService : ICityService
 		if (isPaginated && !cities.Any())
 			throw new PageOutOfRangeException("No cities available for the requested page.");
 
-		List<GetCityDto> cityDtos = _mapper.Map<List<GetCityDto>>(cities);
+		List<CityGetDto> cityDtos = _mapper.Map<List<CityGetDto>>(cities);
 
-		return new Pagination<GetCityDto>
+		return new Pagination<CityGetDto>
 		{
 			Items = cityDtos,
 			TotalCount = totalItems,
@@ -85,7 +80,7 @@ internal class CityService : ICityService
 		};
 	}
 
-	public async Task<GetCityDto> GetByIdAsync(Guid id)
+	public async Task<CityGetDto> GetByIdAsync(Guid id)
     {
         var city = await _cityRepository.GetByIdAsync(id);
         if (city is null || city.IsDeleted)
@@ -93,16 +88,12 @@ internal class CityService : ICityService
             throw new CityNotFoundException("The city you are trying to get does not exist or has been deleted.");
         }
 
-        var getCityDto = _mapper.Map<GetCityDto>(city);
+        var getCityDto = _mapper.Map<CityGetDto>(city);
         return getCityDto;
     }
 
-    public async Task<Pagination<GetCityDto>> SearchByNameAsync(string name, int pageNumber = 1, int take = 10, bool isPaginated = false)
+    public async Task<Pagination<CityGetDto>> SearchByNameAsync(string name, int pageNumber = 1, int take = 10, bool isPaginated = false)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new CityNameEmptyException("Search term cannot be null or empty.");
-        }
         if (pageNumber < 1 || take < 1)
         {
             throw new InvalidPageArgumentException("Page number and take must be greater than 0.");
@@ -122,8 +113,8 @@ internal class CityService : ICityService
 		if (isPaginated && !cities.Any())
 			throw new PageOutOfRangeException("No cities available for the requested page.");
 
-		List<GetCityDto> cityDtos = _mapper.Map<List<GetCityDto>>(cities);
-        Pagination<GetCityDto> pagination = new Pagination<GetCityDto>
+		List<CityGetDto> cityDtos = _mapper.Map<List<CityGetDto>>(cities);
+        Pagination<CityGetDto> pagination = new Pagination<CityGetDto>
         {
             Items = cityDtos,
             TotalCount = totalItems,
@@ -133,16 +124,20 @@ internal class CityService : ICityService
         return pagination;
     }
 
-    public async Task<GetCityDto> UpdateAsync(Guid id, CreateCityDto updateCityDto)
+    public async Task<CityUpdateDto> UpdateAsync(Guid id, CityUpdateDto cityUpdateDto)
     {
+        if(id != cityUpdateDto.Id)
+        {
+            throw new BadRequestException("Id doesn't match with root");
+        }
         var city = await _cityRepository.GetByIdAsync(id);
         if (city is null || city.IsDeleted)
         {
             throw new CityNotFoundException("The city you are trying to update does not exist or has been deleted.");
         }
-        city.Name = updateCityDto.Name;
+        var modifiedCity = _mapper.Map<City>(cityUpdateDto);
+        _cityRepository.Update(modifiedCity);
         await _cityRepository.SaveChangesAsync();
-        var getCityDto = _mapper.Map<GetCityDto>(city);
-        return getCityDto;
+        return cityUpdateDto;
     }
 }
