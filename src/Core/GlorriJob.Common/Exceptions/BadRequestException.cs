@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace GlorriJob.Persistence.Exceptions
 {
-    public class InvalidPageArgumentException : Exception
-    {
-        public InvalidPageArgumentException(string message) : base(message)
+	public class BadRequestException : Exception
+	{
+        public BadRequestException(string message) : base(message)
         {
             
         }

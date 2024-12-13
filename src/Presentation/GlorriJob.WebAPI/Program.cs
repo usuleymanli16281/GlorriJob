@@ -19,10 +19,6 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
-#region Services
-builder.Services.AddScoped<ICityService, ICityService>();
-builder.Services.AddAutoMapper(typeof(Program));
-#endregion
 app.UseAuthorization();
 
 app.MapControllers();
