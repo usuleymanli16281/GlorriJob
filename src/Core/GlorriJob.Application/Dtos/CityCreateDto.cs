@@ -1,7 +1,6 @@
 ﻿namespace GlorriJob.Application.Dtos;
 
-public  class CityCreateDto
+public record CityCreateDto
 {
-    public required string Name { get; set; }
-
+	public required string Name { get; set; }
 }

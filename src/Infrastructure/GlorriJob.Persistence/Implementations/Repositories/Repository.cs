@@ -40,8 +40,6 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         Expression<Func<T, object>>? orderBy = null, 
         bool isAscending = true ,
         bool isTracking = false, 
-        int skip = 0, 
-        int take = 10, 
         params string[] includes)
     {
         IQueryable<T> query = Table.Where(expression);
@@ -60,7 +58,6 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         {
             query = isAscending ? query.OrderBy(orderBy) : query.OrderByDescending(orderBy);
         }
-        query = query.Skip(skip).Take(take);
         return query;
     }
 
@@ -69,7 +66,7 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         return await Table.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public async Task<T?> GetFiltered(
+    public async Task<T?> GetByFilter(
         Expression<Func<T, bool>> expression, 
         bool isTracking = false, 
         params string[] includes)
