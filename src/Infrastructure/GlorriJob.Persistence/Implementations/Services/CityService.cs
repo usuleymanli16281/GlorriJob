@@ -21,7 +21,7 @@ internal class CityService : ICityService
     }
     public async Task<GetCityDto> CreateAsync(CreateCityDto createCityDto)
     {
-        if (string.IsNullOrEmpty(createCityDto.Name) || createCityDto.Name.Length < 3)
+        if (string.IsNullOrWhiteSpace(createCityDto.Name) || createCityDto.Name.Length < 3)
         {
             throw new CityNameEmptyException("City name cannot be empty or too short. It must be at least 3 characters long.");
         }
@@ -56,7 +56,7 @@ internal class CityService : ICityService
         await _cityRepository.SaveChangesAsync();
     }
 
-	public async Task<Pagination<GetCityDto>> GetAll(int pageNumber = 1, int take = 10, bool isPaginated = false)
+	public async Task<Pagination<GetCityDto>> GetAllAsync(int pageNumber = 1, int take = 10, bool isPaginated = false)
 	{
 		if (pageNumber < 1 || take < 1)
 			throw new InvalidPageArgumentException("Page number and take must be greater than 0.");
@@ -97,7 +97,7 @@ internal class CityService : ICityService
         return getCityDto;
     }
 
-    public async Task<Pagination<GetCityDto>> SearchByName(string name, int pageNumber = 1, int take = 10, bool isPaginated = false)
+    public async Task<Pagination<GetCityDto>> SearchByNameAsync(string name, int pageNumber = 1, int take = 10, bool isPaginated = false)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -107,16 +107,16 @@ internal class CityService : ICityService
         {
             throw new InvalidPageArgumentException("Page number and take must be greater than 0.");
         }
-        IQueryable<City> query = _cityRepository.GetAll(c => !c.IsDeleted && c.Name.ToLower().Contains(name));
+        IQueryable<City> query = _cityRepository.GetAll(c => !c.IsDeleted && c.Name.ToLower().Contains(name.ToLower()));
         int totalItems = await query.CountAsync();
-        if (totalItems is 0)
+        if (totalItems == 0)
         {
             throw new CityNotFoundException($"No cities found matching the name '{name}'.");
         }
         if (isPaginated)
         {
 			int skip = (pageNumber - 1) * take;
-			query = _cityRepository.GetAll(expression: c => !c.IsDeleted && c.Name.ToLower().Contains(name), skip: skip, take: take);
+			query = _cityRepository.GetAll(expression: c => !c.IsDeleted && c.Name.ToLower().Contains(name.ToLower()), skip: skip, take: take);
 		}
         List<City> cities = await query.ToListAsync();
 		if (isPaginated && !cities.Any())
