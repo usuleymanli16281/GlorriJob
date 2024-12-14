@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Validations.City;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Shared;
 using GlorriJob.Persistence.Exceptions;
@@ -21,7 +23,14 @@ internal class CityService : ICityService
     }
     public async Task<CityGetDto> CreateAsync(CityCreateDto cityCreateDto)
     {
-        var existedCity = await _cityRepository.GetByFilter(expression:
+		var validator = new CityCreateValidator();
+		var validationResult = await validator.ValidateAsync(cityCreateDto);
+
+		if (!validationResult.IsValid)
+		{
+			throw new ValidationException(validationResult.Errors);
+		}
+		var existedCity = await _cityRepository.GetByFilter(expression:
             c => c.Name == cityCreateDto.Name && !c.IsDeleted,
             isTracking: false);
 
@@ -74,7 +83,7 @@ internal class CityService : ICityService
         var city = await _cityRepository.GetByIdAsync(id);
         if (city is null || city.IsDeleted)
         {
-            throw new NotFoundException("The city you are trying to get does not exist or has been deleted.");
+            throw new NotFoundException("This city does not exist.");
         }
 
         var getCityDto = _mapper.Map<CityGetDto>(city);
@@ -110,7 +119,14 @@ internal class CityService : ICityService
         {
             throw new BadRequestException("Id doesn't match with the root");
         }
-        var city = await _cityRepository.GetByIdAsync(id);
+		var validator = new CityUpdateValidator();
+		var validationResult = await validator.ValidateAsync(cityUpdateDto);
+
+		if (!validationResult.IsValid)
+		{
+			throw new ValidationException(validationResult.Errors);
+		}
+		var city = await _cityRepository.GetByIdAsync(id);
         if (city is null || city.IsDeleted)
         {
             throw new NotFoundException("This city does not exist.");
