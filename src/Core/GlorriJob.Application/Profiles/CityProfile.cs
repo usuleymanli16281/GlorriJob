@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.City;
 using GlorriJob.Domain.Entities;
 
 namespace GlorriJob.Application.Profiles;

@@ -1,5 +1,5 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.City;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection.Metadata.Ecma335;
 
@@ -7,7 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace GlorriJob.WebAPI.Controllers
 {
-	[Route("api/[controller]")]
+    [Route("api/[controller]")]
 	[ApiController]
 	public class CitiesController : ControllerBase
 	{

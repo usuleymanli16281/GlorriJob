@@ -2,7 +2,7 @@
 using FluentValidation;
 using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.City;
 using GlorriJob.Application.Validations.City;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Shared;
@@ -86,8 +86,8 @@ internal class CityService : ICityService
             throw new NotFoundException("This city does not exist.");
         }
 
-        var getCityDto = _mapper.Map<CityGetDto>(city);
-        return getCityDto;
+        var cityGetDto = _mapper.Map<CityGetDto>(city);
+        return cityGetDto;
     }
 
     public async Task<Pagination<CityGetDto>> SearchByNameAsync(string name, int pageNumber = 1, int pageSize = 10, bool isPaginated = false)

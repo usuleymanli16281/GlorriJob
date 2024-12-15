@@ -1,4 +1,5 @@
 ﻿using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.City;
 using GlorriJob.Domain.Shared;
 
 namespace GlorriJob.Application.Abstractions.Services;

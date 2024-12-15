@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.City;
 
 namespace GlorriJob.Application.Validations.City
 {
-	public class CityCreateValidator : AbstractValidator<CityCreateDto>
+    public class CityCreateValidator : AbstractValidator<CityCreateDto>
 	{
         public CityCreateValidator()
         {
