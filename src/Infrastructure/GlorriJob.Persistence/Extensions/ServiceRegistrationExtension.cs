@@ -31,8 +31,6 @@ namespace GlorriJob.Persistence.Extensions
 
             services.AddScoped<IIndustryRepository, IndustryRepository>();
             services.AddScoped<IIndustryService, IndustryService>();
-            services.AddAutoMapper(typeof(IndustryProfile).Assembly);
-            services.AddValidatorsFromAssemblyContaining<IndustryUpdateValidator>();
             return services;
 		}
 	}
