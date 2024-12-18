@@ -3,6 +3,7 @@ using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Profiles;
 using GlorriJob.Application.Validations.City;
+using GlorriJob.Application.Validations.Industry;
 using GlorriJob.Persistence.Contexts;
 using GlorriJob.Persistence.Implementations.Repositories;
 using GlorriJob.Persistence.Implementations.Services;
@@ -27,7 +28,10 @@ namespace GlorriJob.Persistence.Extensions
 			services.AddScoped<ICityService, CityService>();
 			services.AddAutoMapper(typeof(CityProfile).Assembly);
 			services.AddValidatorsFromAssemblyContaining<CityUpdateValidator>();
-			return services;
+
+            services.AddScoped<IIndustryRepository, IndustryRepository>();
+            services.AddScoped<IIndustryService, IndustryService>();
+            return services;
 		}
 	}
 }
