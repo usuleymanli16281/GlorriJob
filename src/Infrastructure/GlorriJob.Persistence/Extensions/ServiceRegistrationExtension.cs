@@ -25,6 +25,7 @@ namespace GlorriJob.Persistence.Extensions
 		{
 			services.AddDbContext<GlorriJobDbContext>(opt => opt.UseNpgsql(configuration.GetConnectionString("Default")));
 			services.AddScoped<ICityRepository, CityRepository>();
+			services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 			services.AddScoped<ICityService, CityService>();
 			services.AddAutoMapper(typeof(CityProfile).Assembly);
 			services.AddValidatorsFromAssemblyContaining<CityUpdateValidator>();

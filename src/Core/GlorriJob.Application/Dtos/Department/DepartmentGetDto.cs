@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GlorriJob.Application.Dtos
+namespace GlorriJob.Application.Dtos.Department
 {
-	public record CityUpdateDto
+	public record DepartmentGetDto
 	{
 		public Guid Id { get; set; }
-		public required string Name { get; set; }
+		public string Name { get; set; } = string.Empty;
 	}
 }
