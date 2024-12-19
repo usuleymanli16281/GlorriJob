@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.CityDtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GlorriJob.Application.Validations.City
 {
-	public class CityUpdateValidator : AbstractValidator<CityUpdateDto>
+    public class CityUpdateValidator : AbstractValidator<CityUpdateDto>
 	{
 		public CityUpdateValidator() 
 		{

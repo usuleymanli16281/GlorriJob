@@ -1,4 +1,4 @@
-﻿namespace GlorriJob.Application.Dtos;
+﻿namespace GlorriJob.Application.Dtos.CityDtos;
 
 public record CityGetDto
 {

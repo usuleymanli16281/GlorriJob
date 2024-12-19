@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.CityDtos;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Shared;
 using GlorriJob.Persistence.Exceptions;
