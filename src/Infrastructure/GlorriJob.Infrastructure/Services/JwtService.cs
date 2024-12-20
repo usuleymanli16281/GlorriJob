@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+﻿using GlorriJob.Application.Abstractions.Services;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -7,11 +8,11 @@ using System.Text;
 
 namespace GlorriJob.Infrastructure.JwTokenService;
 
-public class JWTokenService : IJWTokenService
+public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
 
-    public JWTokenService(IConfiguration configuration)
+    public JwtService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
@@ -23,10 +24,10 @@ public class JWTokenService : IJWTokenService
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: jwtSettings["JwtSettings : Issuer"],
-            audience: jwtSettings["JwtSettings : Audience"],
+            issuer: jwtSettings["Issuer"],
+            audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["JwtSettings : AccessTokenExpirationMinutes"])),
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["AccessTokenExpirationMinutes"])),
             signingCredentials: creds
         );
 

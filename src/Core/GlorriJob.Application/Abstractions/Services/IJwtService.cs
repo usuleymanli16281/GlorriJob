@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 
-namespace GlorriJob.Infrastructure.JwTokenService;
+namespace GlorriJob.Application.Abstractions.Services;
 
-public interface IJWTokenService
+public interface IJwtService
 {
     string GenerateAccessToken(IEnumerable<Claim> claims);
     string GenerateRefreshToken();

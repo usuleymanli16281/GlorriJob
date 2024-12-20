@@ -1,8 +1,10 @@
-﻿namespace GlorriJob.Application.Abstractions.Services;
+﻿using GlorriJob.Application.Dtos.IdentityDtos;
+using GlorriJob.Common.Shared;
+
+namespace GlorriJob.Application.Abstractions.Services;
 
 public interface IAuthService
 {
-    string Login(string username, string password);
-    bool ValidateToken(string token);
-    string RefreshToken(string refreshToken);
+    Task<BaseResponse<object>> RegisterAsync(RegisterDto registerDto);
+    Task<BaseResponse<object>> LoginAsync(LoginDto loginDto);
 }
