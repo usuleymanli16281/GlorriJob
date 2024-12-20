@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.Industry;
 
 namespace GlorriJob.Application.Validations.Industry;
 

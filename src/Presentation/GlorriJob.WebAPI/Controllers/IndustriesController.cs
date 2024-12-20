@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using GlorriJob.Application.Abstractions.Services;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.Industry;
 using GlorriJob.Domain.Shared;
 using GlorriJob.Persistence.Exceptions;
 using Microsoft.AspNetCore.Mvc;

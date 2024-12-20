@@ -3,7 +3,7 @@ using AutoMapper;
 using FluentValidation;
 using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
-using GlorriJob.Application.Dtos;
+using GlorriJob.Application.Dtos.Industry;
 using GlorriJob.Application.Validations.Industry;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Shared;

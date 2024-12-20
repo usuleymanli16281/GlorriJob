@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\GlorriJob.Application\GlorriJob.Application.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\GlorriJob.Infrastructure\GlorriJob.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Infrastructure\GlorriJob.Persistence\GlorriJob.Persistence.csproj" />
   </ItemGroup>
 
