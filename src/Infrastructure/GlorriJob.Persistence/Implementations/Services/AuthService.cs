@@ -33,14 +33,14 @@ public class AuthService : IAuthService
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.NameIdentifier, user.Id)
+            new Claim(ClaimTypes.Name, user.UserName!),
+            new Claim(ClaimTypes.Email, user.Email!)
         };
 
         var accessToken = _jwtService.GenerateAccessToken(claims);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
-        _refreshTokens[user.UserName] = refreshToken;
+        _refreshTokens[user.UserName!] = refreshToken;
 
         return new BaseResponse<object>
         {

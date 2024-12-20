@@ -8,7 +8,7 @@ using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Shared;
 using GlorriJob.Persistence.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+
 
 namespace GlorriJob.Persistence.Implementations.Services;
 

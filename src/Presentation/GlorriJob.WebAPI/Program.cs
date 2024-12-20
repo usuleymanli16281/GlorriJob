@@ -1,8 +1,8 @@
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Domain.Entities;
+using GlorriJob.Infrastructure;
 using GlorriJob.Persistence;
 using GlorriJob.Persistence.Implementations.Repositories;
-using GlorriJob.Persistence.Implementations.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

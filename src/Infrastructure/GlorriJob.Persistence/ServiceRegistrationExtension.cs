@@ -21,9 +21,14 @@ public static class ServiceRegistrationExtension
         services.AddIdentity<IdentityUser, IdentityRole>()
         .AddEntityFrameworkStores<GlorriJobDbContext>();
         services.AddScoped<ICityRepository, CityRepository>();
+        services.AddScoped<ICityService, CityService>();
+        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+        services.AddScoped<IDepartmentService, DepartmentService>();
+        services.AddScoped<IIndustryRepository, IndustryRepository>();
+        services.AddScoped<IIndustryService, IndustryService>();
+        services.AddScoped<IAuthService, AuthService>();
         services.AddAutoMapper(typeof(CityProfile).Assembly);
         services.AddValidatorsFromAssemblyContaining<CityUpdateValidator>();
-        services.AddScoped<IAuthService, AuthService>();
         return services;
     }
 }

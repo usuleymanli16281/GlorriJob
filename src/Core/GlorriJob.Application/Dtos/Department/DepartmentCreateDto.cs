@@ -8,7 +8,7 @@ namespace GlorriJob.Application.Dtos.Department
 {
 	public record DepartmentCreateDto
 	{
-		public string Name { get; set; } = string.Empty;
+		public required string Name { get; set; } = string.Empty;
 		public Guid BranchId { get; set; }
 	}
 }

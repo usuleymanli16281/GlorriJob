@@ -9,7 +9,7 @@ namespace GlorriJob.Application.Dtos.Department
 	public record DepartmentUpdateDto
 	{
 		public Guid Id { get; set; }
-		public string Name { get; set; } = string.Empty;
+		public required string Name { get; set; } = string.Empty;
 		public Guid BranchId { get; set; }
 	}
 }
