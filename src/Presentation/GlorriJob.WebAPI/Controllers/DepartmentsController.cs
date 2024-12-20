@@ -60,4 +60,3 @@ namespace GlorriJob.WebAPI.Controllers
 		}
 	}
 }
-}

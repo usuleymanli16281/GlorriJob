@@ -1,6 +1,6 @@
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Domain.Entities;
-using GlorriJob.Persistence.Extensions;
+using GlorriJob.Persistence;
 using GlorriJob.Persistence.Implementations.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +19,8 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

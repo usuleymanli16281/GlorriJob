@@ -1,4 +1,6 @@
 ﻿using GlorriJob.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace GlorriJob.Persistence.Contexts
 {
-	public class GlorriJobDbContext : DbContext
-	{
+    public class GlorriJobDbContext : IdentityDbContext<IdentityUser>
+    {
         public GlorriJobDbContext(DbContextOptions<GlorriJobDbContext> options) : base(options)
         {
-            
+
         }
         public DbSet<Biography> Biographies { get; set; }
         public DbSet<Branch> Branches { get; set; }
@@ -23,6 +25,6 @@ namespace GlorriJob.Persistence.Contexts
         public DbSet<Department> Departments { get; set; }
         public DbSet<Industry> Industries { get; set; }
         public DbSet<Vacancy> Vacancies { get; set; }
-        public DbSet<VacancyDetail> VacancyDetails { get; set;}
+        public DbSet<VacancyDetail> VacancyDetails { get; set; }
     }
 }
