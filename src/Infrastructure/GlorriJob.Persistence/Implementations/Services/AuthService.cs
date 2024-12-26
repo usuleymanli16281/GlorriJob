@@ -19,78 +19,79 @@ public class AuthService : IAuthService
         _refreshTokens = new Dictionary<string, string>();
 
     }
-    //public async Task<BaseResponse<object>> LoginAsync(LoginDto loginDto)
-    //{
-    //    var user = await _userManager.FindByNameAsync(loginDto.Username);
-    //    if (user is null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
-    //    {
-    //        return new BaseResponse<object>
-    //        {
-    //            StatusCode = "401",
-    //            Message = "Invalid username or password.",
-    //            Data = null
-    //        };
-    //    }
+    public async Task<BaseResponse<object>> LoginAsync(LoginDto loginDto)
+    {
+        var user = await _userManager.FindByNameAsync(loginDto.Email);
+        if (user is null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
+        {
+            return new BaseResponse<object>
+            {
+                StatusCode = "401",
+                Message = "Invalid username or password.",
+                Data = null
+            };
+        }
 
-    //    var claims = new List<Claim>
-    //    {
-    //        new Claim(ClaimTypes.Name, user.UserName!),
-    //        new Claim(ClaimTypes.Email, user.Email!)
-    //    };
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.UserName!),
+            new Claim(ClaimTypes.Email, user.Email!)
+        };
 
-    //    var accessToken = _jwtService.GenerateAccessToken(claims);
-    //    var refreshToken = _jwtService.GenerateRefreshToken();
+        var accessToken = _jwtService.GenerateAccessToken(claims);
+        var refreshToken = _jwtService.GenerateRefreshToken();
 
-    //    _refreshTokens[user.UserName!] = refreshToken;
+        _refreshTokens[user.UserName!] = refreshToken;
 
-    //    return new BaseResponse<object>
-    //    {
-    //        StatusCode = "200",
-    //        Message = "Login is successful.",
-    //        Data = new
-    //        {
-    //            AccessToken = accessToken,
-    //            RefreshToken = refreshToken
-    //        }
-    //    };
-    //}
+        return new BaseResponse<object>
+        {
+            StatusCode = "200",
+            Message = "Login is successful.",
+            Data = new
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            }
+        };
+    }
 
-    //    public async Task<BaseResponse<object>> RegisterAsync(RegisterDto registerDto)
-    //    {
-    //        var registeredUser = await _userManager.FindByNameAsync(registerDto.Username);
-    //        if (registeredUser is not null)
-    //        {
-    //            return new BaseResponse<object>
-    //            {
-    //                StatusCode = "400",
-    //                Message = "Username already exists.",
-    //                Data = null
-    //            };
-    //        }
+    public async Task<BaseResponse<object>> RegisterAsync(RegisterDto registerDto)
+    {
+        var registeredUser = await _userManager.FindByNameAsync(registerDto.Email);
+        if (registeredUser is not null)
+        {
+            return new BaseResponse<object>
+            {
+                StatusCode = "400",
+                Message = "This email already registered.",
+                Data = null
+            };
+        }
 
-    //    //    var newUser = new User
-    //    //    {
-    //    //        UserName = registerDto.Username,
-    //    //        Email = registerDto.Email
-    //    //    };
+        var user = new User
+        {
+            Name = registerDto.Name,
+            Surname = registerDto.Surname,
+            Email = registerDto.Email,
+        };
 
-    //    //    var result = await _userManager.CreateAsync(newUser, registerDto.Password);
-    //    //    if (!result.Succeeded)
-    //    //    {
-    //    //        return new BaseResponse<object>
-    //    //        {
-    //    //            StatusCode = "400",
-    //    //            Message = string.Join("; ", result.Errors.Select(e => e.Description)),
-    //    //            Data = null
-    //    //        };
-    //    //    }
+        var result = await _userManager.CreateAsync(user, registerDto.Password);
+        if (!result.Succeeded)
+        {
+            return new BaseResponse<object>
+            {
+                StatusCode = "400",
+                Message = string.Join("; ", result.Errors.Select(e => e.Description)),
+                Data = null
+            };
+        }
 
-    //    //    return new BaseResponse<object>
-    //    //    {
-    //    //        StatusCode = "201",
-    //    //        Message = "User registered successfully.",
-    //    //        Data = new { Username = newUser.UserName, Email = newUser.Email }
-    //    //    };
-    //    //}
-    //}
+        return new BaseResponse<object>
+        {
+            StatusCode = "201",
+            Message = "User registered successfully.",
+            Data = new { Username = user.UserName, Email = user.Email }
+        };
+    }
 }
+

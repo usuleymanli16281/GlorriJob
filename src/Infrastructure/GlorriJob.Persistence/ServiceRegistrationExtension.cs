@@ -25,6 +25,7 @@ public static class ServiceRegistrationExtension
             opt.Password.RequireNonAlphanumeric = false;
             opt.Password.RequireLowercase = true;
             opt.Password.RequireUppercase = true;
+            opt.User.RequireUniqueEmail = true;
         })
         .AddRoles<Role>()
         .AddEntityFrameworkStores<GlorriJobDbContext>();
