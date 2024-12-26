@@ -21,38 +21,7 @@ public class AuthService : IAuthService
     }
     public async Task<BaseResponse<object>> LoginAsync(LoginDto loginDto)
     {
-        var user = await _userManager.FindByNameAsync(loginDto.Email);
-        if (user is null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
-        {
-            return new BaseResponse<object>
-            {
-                StatusCode = "401",
-                Message = "Invalid username or password.",
-                Data = null
-            };
-        }
-
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.UserName!),
-            new Claim(ClaimTypes.Email, user.Email!)
-        };
-
-        var accessToken = _jwtService.GenerateAccessToken(claims);
-        var refreshToken = _jwtService.GenerateRefreshToken();
-
-        _refreshTokens[user.UserName!] = refreshToken;
-
-        return new BaseResponse<object>
-        {
-            StatusCode = "200",
-            Message = "Login is successful.",
-            Data = new
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
-            }
-        };
+        throw new NotImplementedException();
     }
 
     public async Task<BaseResponse<object>> RegisterAsync(RegisterDto registerDto)
@@ -73,6 +42,8 @@ public class AuthService : IAuthService
             Name = registerDto.Name,
             Surname = registerDto.Surname,
             Email = registerDto.Email,
+            UserName = registerDto.Email,
+            SecurityStamp = Guid.NewGuid().ToString().Replace("-","")
         };
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -90,7 +61,7 @@ public class AuthService : IAuthService
         {
             StatusCode = "201",
             Message = "User registered successfully.",
-            Data = new { Username = user.UserName, Email = user.Email }
+            Data = new { Name = user.Name,  Surname = user.Surname, Email = user.Email }
         };
     }
 }

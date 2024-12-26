@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GlorriJob.WebAPI.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 [ApiController]
 public class AuthsController : ControllerBase
 {
@@ -15,7 +15,7 @@ public class AuthsController : ControllerBase
         _authService = authService;
     }
 
-    //[HttpPost("login")]
+    //[HttpPost]
     //public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     //{
     //    var response = await _authService.LoginAsync(loginDto);
@@ -26,14 +26,14 @@ public class AuthsController : ControllerBase
     //    return Unauthorized(response);
     //}
 
-    //[HttpPost("register")]
-    //public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
-    //{
-    //    var response = await _authService.RegisterAsync(registerDto);
-    //    if (response.StatusCode == "201")
-    //    {
-    //        return CreatedAtAction(nameof(Register), new { username = registerDto.Username }, response);
-    //    }
-    //    return BadRequest(response);
-    //}
+    [HttpPost]
+    public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+    {
+        var response = await _authService.RegisterAsync(registerDto);
+        if (response.StatusCode == "201")
+        {
+            return CreatedAtAction(nameof(Register), response.Data);
+        }
+        return BadRequest(response);
+    }
 }
