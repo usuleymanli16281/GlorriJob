@@ -1,16 +1,11 @@
 ﻿using GlorriJob.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace GlorriJob.Persistence.Contexts
 {
-    public class GlorriJobDbContext : IdentityDbContext<IdentityUser>
+    public class GlorriJobDbContext : IdentityDbContext<User,Role,Guid>
     {
         public GlorriJobDbContext(DbContextOptions<GlorriJobDbContext> options) : base(options)
         {
