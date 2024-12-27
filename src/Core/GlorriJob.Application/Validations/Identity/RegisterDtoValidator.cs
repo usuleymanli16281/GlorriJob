@@ -26,7 +26,7 @@ namespace GlorriJob.Application.Validations.Identity
                 .WithName("Password");
             RuleFor(x => x.ConfirmPassword)
                 .NotEmpty()
-                .Equal(x => x.Password)
+                .Equal(x => x.Password).WithMessage("Confirm Password does not match with password")
                 .WithName("Confirm Password");
             
         }

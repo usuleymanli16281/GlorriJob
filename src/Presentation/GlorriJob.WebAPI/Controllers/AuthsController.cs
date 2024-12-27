@@ -15,16 +15,16 @@ public class AuthsController : ControllerBase
         _authService = authService;
     }
 
-    //[HttpPost]
-    //public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
-    //{
-    //    var response = await _authService.LoginAsync(loginDto);
-    //    if (response.StatusCode == "200")
-    //    {
-    //        return Ok(response);
-    //    }
-    //    return Unauthorized(response);
-    //}
+    [HttpPost]
+    public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+    {
+        var response = await _authService.LoginAsync(loginDto);
+        if (response.StatusCode == "200")
+        {
+            return Ok(response.Data);
+        }
+        return Unauthorized(response.Message);
+    }
 
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
