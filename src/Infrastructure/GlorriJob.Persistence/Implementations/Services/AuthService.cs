@@ -6,7 +6,10 @@ using GlorriJob.Application.Validations.City;
 using GlorriJob.Application.Validations.Identity;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
+using GlorriJob.Persistence.Contexts;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -19,15 +22,63 @@ public class AuthService : IAuthService
 	private UserManager<User> _userManager { get; }
 	private IMapper _mapper { get; }
 	private IConfiguration _configuration { get; }
+	private GlorriJobDbContext _context { get; }
 	public AuthService(IJwtService jwtService,
 		UserManager<User> userManager,
 		IMapper mapper,
-		IConfiguration configuration)
+		IConfiguration configuration,
+		GlorriJobDbContext context)
 	{
 		_jwtService = jwtService;
 		_userManager = userManager;
 		_mapper = mapper;
 		_configuration = configuration;
+		_context = context;
+	}
+	public async Task<BaseResponse<object>> RefreshToken(string refreshtoken)
+	{
+		var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken==refreshtoken);
+		if(user is null)
+		{
+			return new BaseResponse<object>
+			{
+				StatusCode = "400",
+				Message = "This refreshToken is not valid",
+				Data = null
+			};
+		}
+		if(user.RefreshTokenExpiryTime < DateTime.UtcNow)
+		{
+			return new BaseResponse<object>
+			{
+				StatusCode = "400",
+				Message = "This refreshToken is expired",
+				Data = null
+			};
+		}
+		var claims = new[]
+		{
+			new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
+			new Claim(ClaimTypes.Email, user.Email!)
+		};
+		string token = _jwtService.GenerateAccessToken(claims);
+		string refreshToken = _jwtService.GenerateRefreshToken();
+		_ = int.TryParse(_configuration["JwtSettings:RefreshTokenExpirationHours"], out int refreshTokenExpiryTime);
+		user.RefreshToken = refreshToken;
+		user.RefreshTokenExpiryTime = DateTime.UtcNow.AddHours(refreshTokenExpiryTime);
+		await _userManager.UpdateAsync(user);
+		return new BaseResponse<object>
+		{
+			StatusCode = "200",
+			Message = "New tokens are created",
+			Data = new
+			{
+				AccessToken = token,
+				RefreshToken = refreshToken,
+				Expiration = refreshTokenExpiryTime
+			}
+		};
+
 	}
 	public async Task<BaseResponse<object>> LoginAsync(LoginDto loginDto)
 	{
@@ -86,7 +137,6 @@ public class AuthService : IAuthService
 	{
 		var validator = new RegisterDtoValidator();
 		var validationResult = await validator.ValidateAsync(registerDto);
-
 		if (!validationResult.IsValid)
 		{
 			return new BaseResponse<object>
