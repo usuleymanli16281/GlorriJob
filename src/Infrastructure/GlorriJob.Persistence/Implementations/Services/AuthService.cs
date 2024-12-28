@@ -60,9 +60,12 @@ public class AuthService : IAuthService
 		var claims = new[]
 		{
 			new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
+			new Claim(ClaimTypes.Name,user.Name),
+			new Claim(ClaimTypes.Surname,user.Surname ?? ""),
 			new Claim(ClaimTypes.Email, user.Email!)
 		};
 		string token = _jwtService.GenerateAccessToken(claims);
+		_ = int.TryParse(_configuration["JwtSettings:AccessTokenExpirationHours"], out int accessTokenExpiryTime);
 		string refreshToken = _jwtService.GenerateRefreshToken();
 		_ = int.TryParse(_configuration["JwtSettings:RefreshTokenExpirationHours"], out int refreshTokenExpiryTime);
 		user.RefreshToken = refreshToken;
@@ -70,13 +73,14 @@ public class AuthService : IAuthService
 		await _userManager.UpdateAsync(user);
 		return new BaseResponse<object>
 		{
-			StatusCode = HttpStatusCode.Accepted,
+			StatusCode = HttpStatusCode.OK,
 			Message = "New tokens are created",
 			Data = new
 			{
 				AccessToken = token,
+				AccessTokenExpiration = accessTokenExpiryTime,
 				RefreshToken = refreshToken,
-				Expiration = refreshTokenExpiryTime
+				RefreshTokenExpiration = refreshTokenExpiryTime
 			}
 		};
 
@@ -111,10 +115,13 @@ public class AuthService : IAuthService
 		}
 		var claims = new[]
 		{
-			new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+			new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+			new Claim(ClaimTypes.Name,user.Name),
+			new Claim(ClaimTypes.Surname,user.Surname ?? ""),
 			new Claim(ClaimTypes.Email, loginDto.Email)
 		};
 		string token = _jwtService.GenerateAccessToken(claims);
+		_ = int.TryParse(_configuration["JwtSettings:AccessTokenExpirationHours"], out int accessTokenExpiryTime);
 		string refreshToken = _jwtService.GenerateRefreshToken();
 		_ = int.TryParse(_configuration["JwtSettings:RefreshTokenExpirationHours"], out int refreshTokenExpiryTime);
 		user.RefreshToken = refreshToken;
@@ -122,13 +129,14 @@ public class AuthService : IAuthService
 		await _userManager.UpdateAsync(user);
 		return new BaseResponse<object>
 		{
-			StatusCode = HttpStatusCode.Accepted,
+			StatusCode = HttpStatusCode.OK,
 			Message = "User successfully logged in",
 			Data = new
 			{
 				AccessToken = token,
+				AccessTokenExpiration = accessTokenExpiryTime,
 				RefreshToken = refreshToken,
-				Expiration = refreshTokenExpiryTime
+				RefreshTokenExpiration = refreshTokenExpiryTime
 			}
 		};
 
@@ -142,7 +150,7 @@ public class AuthService : IAuthService
 		{
 			return new BaseResponse<object>
 			{
-				StatusCode = HttpStatusCode.BadRequest
+				StatusCode = HttpStatusCode.BadRequest,
 				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage)),
 				Data = null
 			};
