@@ -34,5 +34,7 @@ namespace GlorriJob.Domain
         Student,
         Supervisor
     }
-  
+
+
+
 }

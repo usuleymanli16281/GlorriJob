@@ -20,12 +20,19 @@ public static class ServiceRegistrationExtension
         services.AddDbContext<GlorriJobDbContext>(opt => opt.UseNpgsql(configuration.GetConnectionString("Default")));
         services.AddIdentity<IdentityUser, IdentityRole>()
         .AddEntityFrameworkStores<GlorriJobDbContext>();
+
         services.AddScoped<ICityRepository, CityRepository>();
         services.AddScoped<ICityService, CityService>();
+
         services.AddScoped<IDepartmentRepository, DepartmentRepository>();
         services.AddScoped<IDepartmentService, DepartmentService>();
+
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryService, CategoryService>();
+
         services.AddScoped<IIndustryRepository, IndustryRepository>();
         services.AddScoped<IIndustryService, IndustryService>();
+
         services.AddScoped<IAuthService, AuthService>();
         services.AddAutoMapper(typeof(CityProfile).Assembly);
         services.AddValidatorsFromAssemblyContaining<CityUpdateValidator>();
