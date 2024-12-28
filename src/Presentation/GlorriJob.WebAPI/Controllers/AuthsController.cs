@@ -18,7 +18,7 @@ public class AuthsController : ControllerBase
     public async Task<IActionResult> RefreshToken(string refreshtoken)
     {
         var response = await _authService.RefreshToken(refreshtoken);
-        return StatusCode(int.Parse(response.StatusCode!), response);
+        return StatusCode(int.Parse(response.StatusCode!.Value.ToString()), response);
     }
 
 
@@ -26,17 +26,13 @@ public class AuthsController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         var response = await _authService.LoginAsync(loginDto);
-		return StatusCode(int.Parse(response.StatusCode!), response);
+		return StatusCode(int.Parse(response.StatusCode!.Value.ToString()), response);
 	}
 
     [HttpPost("[action]")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         var response = await _authService.RegisterAsync(registerDto);
-        if (response.StatusCode == "201")
-        {
-            return CreatedAtAction(nameof(Register), response.Data);
-        }
-        return BadRequest(response);
-    }
+		return StatusCode(int.Parse(response.StatusCode!.Value.ToString()), response);
+	}
 }

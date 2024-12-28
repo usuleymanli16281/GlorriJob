@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 
 namespace GlorriJob.Persistence.Implementations.Services;
@@ -42,7 +43,7 @@ public class AuthService : IAuthService
 		{
 			return new BaseResponse<object>
 			{
-				StatusCode = "400",
+				StatusCode = HttpStatusCode.BadRequest,
 				Message = "This refreshToken is not valid",
 				Data = null
 			};
@@ -51,7 +52,7 @@ public class AuthService : IAuthService
 		{
 			return new BaseResponse<object>
 			{
-				StatusCode = "400",
+				StatusCode = HttpStatusCode.BadRequest,
 				Message = "This refreshToken is expired",
 				Data = null
 			};
@@ -69,7 +70,7 @@ public class AuthService : IAuthService
 		await _userManager.UpdateAsync(user);
 		return new BaseResponse<object>
 		{
-			StatusCode = "200",
+			StatusCode = HttpStatusCode.Accepted,
 			Message = "New tokens are created",
 			Data = new
 			{
@@ -88,7 +89,7 @@ public class AuthService : IAuthService
 		{
 			return new BaseResponse<object>
 			{
-				StatusCode = "400",
+				StatusCode = HttpStatusCode.BadRequest,
 				Message = string.Join(";",validationResult.Errors.Select(e => e.ErrorMessage)),
 				Data = null
 			};
@@ -103,7 +104,7 @@ public class AuthService : IAuthService
 		{
 			return new BaseResponse<object>
 			{
-				StatusCode = "400",
+				StatusCode = HttpStatusCode.BadRequest,
 				Message = "Email or password is wrong.",
 				Data = null
 			};
@@ -121,7 +122,7 @@ public class AuthService : IAuthService
 		await _userManager.UpdateAsync(user);
 		return new BaseResponse<object>
 		{
-			StatusCode = "200",
+			StatusCode = HttpStatusCode.Accepted,
 			Message = "User successfully logged in",
 			Data = new
 			{
@@ -141,7 +142,7 @@ public class AuthService : IAuthService
 		{
 			return new BaseResponse<object>
 			{
-				StatusCode = "400",
+				StatusCode = HttpStatusCode.BadRequest
 				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage)),
 				Data = null
 			};
@@ -151,7 +152,7 @@ public class AuthService : IAuthService
 		{
 			return new BaseResponse<object>
 			{
-				StatusCode = "400",
+				StatusCode = HttpStatusCode.BadRequest,
 				Message = "This email already registered.",
 				Data = null
 			};
@@ -164,7 +165,7 @@ public class AuthService : IAuthService
 		{
 			return new BaseResponse<object>
 			{
-				StatusCode = "400",
+				StatusCode = HttpStatusCode.BadRequest,
 				Message = string.Join("; ", result.Errors.Select(e => e.Description)),
 				Data = null
 			};
@@ -172,7 +173,7 @@ public class AuthService : IAuthService
 
 		return new BaseResponse<object>
 		{
-			StatusCode = "201",
+			StatusCode = HttpStatusCode.Created,
 			Message = "User registered successfully.",
 			Data = new { Name = user.Name, Surname = user.Surname, Email = user.Email }
 		};
