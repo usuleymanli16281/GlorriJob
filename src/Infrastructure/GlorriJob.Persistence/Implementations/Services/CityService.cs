@@ -3,6 +3,7 @@ using FluentValidation;
 using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.City;
+using GlorriJob.Application.Dtos.Department;
 using GlorriJob.Application.Validations.City;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
@@ -31,19 +32,10 @@ public class CityService : ICityService
 
         if (!validationResult.IsValid)
         {
-            return new BaseResponse<CityGetDto>(
-                "Validation failed: " + string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
-                ResponseStatusCode.BadRequest.ToString(),
-                null
-            );
-        }
-
-		if (!validationResult.IsValid)
-		{
 			return new BaseResponse<CityCreateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage)),
+				Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
 				Data = null
 			};
 		}
@@ -187,25 +179,13 @@ public class CityService : ICityService
     {
         if (id != cityUpdateDto.Id)
         {
-            return new BaseResponse<CityUpdateDto>(
-                "The ID provided does not match the ID in the URL parameter.",
-                ResponseStatusCode.BadRequest.ToString(),
-                null
-            );
-        }
-
-        var validator = new CityUpdateValidator();
-        var validationResult = await validator.ValidateAsync(cityUpdateDto);
-
-        if (!validationResult.IsValid)
-        {
 			return new BaseResponse<CityUpdateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "Id doesn't match with the root",
+				Message = "Id does not match with the root.",
 				Data = null
 			};
-        }
+		}
 		var validator = new CityUpdateValidator();
 		var validationResult = await validator.ValidateAsync(cityUpdateDto);
 

@@ -11,7 +11,7 @@ public  interface IIndustryService
     Task<BaseResponse<Pagination<IndustryGetDto>>> SearchByNameAsync(string name, int pageNumber = 1, int pageSize = 10, bool isPaginated = false);
     Task<BaseResponse<IndustryGetDto>> CreateAsync(IndustryCreateDto createIndustryDto);
     Task<BaseResponse<IndustryUpdateDto>> UpdateAsync(Guid id, IndustryUpdateDto industryUpdateDto);
-    Task<BaseResponse<bool>> DeleteAsync(Guid id);
+    Task<BaseResponse<object>> DeleteAsync(Guid id);
 
 
 }
