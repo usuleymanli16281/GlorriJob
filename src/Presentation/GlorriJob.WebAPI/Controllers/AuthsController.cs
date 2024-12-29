@@ -15,26 +15,32 @@ public class AuthsController : ControllerBase
     {
         _authService = authService;
     }
+    [HttpPost("connect/token")]
+    public async Task<IActionResult> RefreshToken(string refreshtoken)
+    {
+        var response = await _authService.RefreshToken(refreshtoken);
+        return StatusCode((int)response.StatusCode, response);
+    }
 
-    [HttpPost("login")]
+
+    [HttpPost("[action]")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         var response = await _authService.LoginAsync(loginDto);
-        if (response.CustomStatusCode == ResponseStatusCode.Success.ToString())
-        {
-            return Ok(response);
-        }
-        return Unauthorized(response);
-    }
+		    return StatusCode((int)response.StatusCode, response);
+	}
 
-    [HttpPost("register")]
+
+    [HttpPost("[action]")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         var response = await _authService.RegisterAsync(registerDto);
-        if (response.CustomStatusCode == ResponseStatusCode.Created.ToString())
-        {
-            return CreatedAtAction(nameof(Register), new { username = registerDto.Username }, response);
-        }
-        return BadRequest(response);
+		    return StatusCode((int)response.StatusCode, response);
+	}
+    [HttpGet("[action]")]
+    public IActionResult GetEmailFromToken([FromQuery] string token)
+    {
+        var response = _authService.GetEmailFromToken(token);
+        return StatusCode((int)response.StatusCode, response);
     }
 }
