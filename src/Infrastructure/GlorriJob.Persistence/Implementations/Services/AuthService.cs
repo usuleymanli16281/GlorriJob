@@ -1,6 +1,7 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Identity;
 using GlorriJob.Common.Shared;
+using GlorriJob.Domain;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -25,7 +26,7 @@ public class AuthService : IAuthService
         {
             return new BaseResponse<object>
             {
-                StatusCode = "401",
+                CustomStatusCode = ResponseStatusCode.Unauthorized.ToString(),
                 Message = "Invalid username or password.",
                 Data = null
             };
@@ -44,7 +45,7 @@ public class AuthService : IAuthService
 
         return new BaseResponse<object>
         {
-            StatusCode = "200",
+            CustomStatusCode = ResponseStatusCode.Success.ToString(),
             Message = "Login is successful.",
             Data = new
             {
@@ -61,7 +62,7 @@ public class AuthService : IAuthService
         {
             return new BaseResponse<object>
             {
-                StatusCode = "400",
+                CustomStatusCode = ResponseStatusCode.BadRequest.ToString(),
                 Message = "Username already exists.",
                 Data = null
             };
@@ -78,7 +79,7 @@ public class AuthService : IAuthService
         {
             return new BaseResponse<object>
             {
-                StatusCode = "400",
+                CustomStatusCode = ResponseStatusCode.BadRequest.ToString(),
                 Message = string.Join("; ", result.Errors.Select(e => e.Description)),
                 Data = null
             };
@@ -86,7 +87,7 @@ public class AuthService : IAuthService
 
         return new BaseResponse<object>
         {
-            StatusCode = "201",
+            CustomStatusCode = ResponseStatusCode.Created.ToString(),
             Message = "User registered successfully.",
             Data = new { Username = newUser.UserName, Email = newUser.Email }
         };

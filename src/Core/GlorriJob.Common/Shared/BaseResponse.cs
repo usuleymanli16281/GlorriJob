@@ -3,7 +3,7 @@
 public class BaseResponse<T>
 {
     public T? Data { get; set; }
-    public string? StatusCode { get; set; }
+    public string? CustomStatusCode { get; set; }
     public string? Message { get; set; }
 
     public BaseResponse()
@@ -14,15 +14,15 @@ public class BaseResponse<T>
     {
         Message = message;
     }
-    public BaseResponse(string message, string statusCode)
+    public BaseResponse(string message, string customStatusCode)
     {
         Message = message;
-        StatusCode = statusCode;
+        CustomStatusCode = customStatusCode;
     }
-    public BaseResponse(string message, string statusCode, T data)
+    public BaseResponse(string message, string customStatusCode, T data)
     {
         Message = message;
-        StatusCode = statusCode;
+        CustomStatusCode = customStatusCode;
         Data = data;
     }
 }
