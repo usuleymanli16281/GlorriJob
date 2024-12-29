@@ -7,7 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace GlorriJob.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+  [Route("api/[controller]")]
 	[ApiController]
 	public class CitiesController : ControllerBase
 	{
@@ -20,44 +20,44 @@ namespace GlorriJob.WebAPI.Controllers
 		[HttpGet("all")]
 		public async Task<IActionResult> GetAll(int pageNumber, int pageSize, bool isPaginated = true)
 		{
-			var data = await _cityService.GetAllAsync(pageNumber, pageSize, isPaginated);
-			return Ok(data);
+			var response = await _cityService.GetAllAsync(pageNumber, pageSize, isPaginated);
+			return StatusCode((int)response.StatusCode, response);
 		}
 
 		[HttpGet("{id}")]
 		public async Task<IActionResult> GetById(Guid id)
 		{
-			var data = await _cityService.GetByIdAsync(id);
-			return Ok(data);
+			var response = await _cityService.GetByIdAsync(id);
+			return StatusCode((int)response.StatusCode, response); ;
 		}
-		[HttpGet]
+		[HttpGet("search")]
 		public async Task<IActionResult> SearchByName([FromQuery]string name, int pageNumber, int pageSize, bool isPaginated = true)
 		{
-			var data = await _cityService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);
-			return Ok(data);
+			var response = await _cityService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);
+			return StatusCode((int)response.StatusCode, response);
 		}
 
 		[HttpPost]
 		public async Task<IActionResult> Create([FromBody] CityCreateDto cityCreateDto)
 		{
-			var data =  await _cityService.CreateAsync(cityCreateDto);
-			return Ok(data);
+			var response =  await _cityService.CreateAsync(cityCreateDto);
+			return StatusCode((int)response.StatusCode, response);
 		}
 
 		
 		[HttpPut("{id}")]
 		public async Task<IActionResult> Update(Guid id, [FromBody] CityUpdateDto cityUpdateDto)
 		{
-			var data = await _cityService.UpdateAsync(id, cityUpdateDto);
-			return Ok(data);
+			var response = await _cityService.UpdateAsync(id, cityUpdateDto);
+			return StatusCode((int)response.StatusCode, response);
 		}
 
 		
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> Delete(Guid id)
 		{
-			await _cityService.DeleteAsync(id);
-			return Ok();
+			var response = await _cityService.DeleteAsync(id);
+			return StatusCode((int)response.StatusCode, response);
 		}
 	}
 }

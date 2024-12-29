@@ -4,6 +4,7 @@ using GlorriJob.Application.Dtos.Industry;
 using GlorriJob.Domain.Shared;
 using GlorriJob.Persistence.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -26,15 +27,8 @@ public class IndustriesController : ControllerBase
         [FromQuery] int pageSize = 10,
         [FromQuery] bool isPaginated = true)
     {
-        try
-        {
-            var result = await _industryService.GetAllAsync(pageNumber, pageSize, isPaginated);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
+        var result = await _industryService.GetAllAsync(pageNumber, pageSize, isPaginated);
+        return Ok(result);
     }
 
     [HttpGet("search")]
@@ -44,55 +38,22 @@ public class IndustriesController : ControllerBase
         [FromQuery] int pageSize = 10,
         [FromQuery] bool isPaginated = true)
     {
-        try
-        {
-            var result = await _industryService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
+        var result = await _industryService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<IndustryGetDto>> GetByIdAsync(Guid id)
     {
-        try
-        {
-            var result = await _industryService.GetByIdAsync(id);
-            return Ok(result);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
+        var result = await _industryService.GetByIdAsync(id);
+        return Ok(result);
     }
 
     [HttpPost]
     public async Task<ActionResult<IndustryGetDto>> CreateAsync([FromBody] IndustryCreateDto industryCreateDto)
     {
-        try
-        {
-            var result = await _industryService.CreateAsync(industryCreateDto);
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = result.Id }, result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(ex.Errors);
-        }
-        catch (AlreadyExistsException ex)
-        {
-            return Conflict(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
+        var result = await _industryService.CreateAsync(industryCreateDto);
+        return Ok(result);
     }
 
     [HttpPut("{id}")]
@@ -100,45 +61,15 @@ public class IndustriesController : ControllerBase
         Guid id,
         [FromBody] IndustryUpdateDto industryUpdateDto)
     {
-        try
-        {
-            var result = await _industryService.UpdateAsync(id, industryUpdateDto);
-            return Ok(result);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (BadRequestException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(ex.Errors);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
+        var result = await _industryService.UpdateAsync(id, industryUpdateDto);
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAsync(Guid id)
     {
-        try
-        {
-            await _industryService.DeleteAsync(id);
-            return NoContent();
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-        }
+        await _industryService.DeleteAsync(id);
+        return NoContent();
     }
 
 }

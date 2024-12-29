@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace GlorriJob.Persistence.Implementations.Services;
@@ -26,7 +27,7 @@ public class JwtService : IJwtService
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["AccessTokenExpirationMinutes"])),
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["AccessTokenExpirationHours"])),
             signingCredentials: creds
         );
 
@@ -35,6 +36,30 @@ public class JwtService : IJwtService
 
     public string GenerateRefreshToken()
     {
-        return Guid.NewGuid().ToString().Replace("-", "") + Guid.NewGuid().ToString().Replace("-", "");
+        var randomNumber = new byte[64];
+        using var randomNumberGenerator = RandomNumberGenerator.Create();
+        randomNumberGenerator.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
     }
+
+	public ClaimsPrincipal? GetPrincipalFromToken(string token)
+	{
+		var tokenHandler = new JwtSecurityTokenHandler();
+		var jwtSettings = _configuration.GetSection("JwtSettings");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!));
+
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = key,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+		};
+        var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+        return principal;
+	}
 }

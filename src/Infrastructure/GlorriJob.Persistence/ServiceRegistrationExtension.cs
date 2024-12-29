@@ -3,6 +3,7 @@ using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Profiles;
 using GlorriJob.Application.Validations.City;
+using GlorriJob.Domain.Entities;
 using GlorriJob.Persistence.Contexts;
 using GlorriJob.Persistence.Implementations.Repositories;
 using GlorriJob.Persistence.Implementations.Services;
@@ -18,7 +19,15 @@ public static class ServiceRegistrationExtension
     public static IServiceCollection AddPersistentServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<GlorriJobDbContext>(opt => opt.UseNpgsql(configuration.GetConnectionString("Default")));
-        services.AddIdentity<IdentityUser, IdentityRole>()
+        services.AddIdentityCore<User>(opt =>
+        {
+            opt.Password.RequiredLength = 8;
+            opt.Password.RequireNonAlphanumeric = false;
+            opt.Password.RequireLowercase = true;
+            opt.Password.RequireUppercase = true;
+            opt.User.RequireUniqueEmail = true;
+        })
+        .AddRoles<Role>()
         .AddEntityFrameworkStores<GlorriJobDbContext>();
         services.AddScoped<ICityRepository, CityRepository>();
         services.AddScoped<ICityService, CityService>();
