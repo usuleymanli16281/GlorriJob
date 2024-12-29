@@ -1,5 +1,6 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Identity;
+using GlorriJob.Domain;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GlorriJob.WebAPI.Controllers;
@@ -19,7 +20,7 @@ public class AuthsController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         var response = await _authService.LoginAsync(loginDto);
-        if (response.StatusCode == "200")
+        if (response.CustomStatusCode == ResponseStatusCode.Success.ToString())
         {
             return Ok(response);
         }
@@ -30,7 +31,7 @@ public class AuthsController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         var response = await _authService.RegisterAsync(registerDto);
-        if (response.StatusCode == "201")
+        if (response.CustomStatusCode == ResponseStatusCode.Created.ToString())
         {
             return CreatedAtAction(nameof(Register), new { username = registerDto.Username }, response);
         }

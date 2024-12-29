@@ -5,6 +5,6 @@ namespace GlorriJob.Application.Abstractions.Services;
 
 public interface IAuthService
 {
-    Task<BaseResponse<object>> RegisterAsync(RegisterDto registerDto);
-    Task<BaseResponse<object>> LoginAsync(LoginDto loginDto);
+    Task<ApiResponse<object>> RegisterAsync(RegisterDto registerDto);
+    Task<ApiResponse<object>> LoginAsync(LoginDto loginDto);
 }

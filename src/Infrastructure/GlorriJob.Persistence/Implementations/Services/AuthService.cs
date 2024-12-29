@@ -1,6 +1,7 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Identity;
 using GlorriJob.Common.Shared;
+using GlorriJob.Domain;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -18,14 +19,14 @@ public class AuthService : IAuthService
         _refreshTokens = new Dictionary<string, string>();
 
     }
-    public async Task<BaseResponse<object>> LoginAsync(LoginDto loginDto)
+    public async Task<ApiResponse<object>> LoginAsync(LoginDto loginDto)
     {
         var user = await _userManager.FindByNameAsync(loginDto.Username);
         if (user is null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
         {
-            return new BaseResponse<object>
+            return new ApiResponse<object>
             {
-                StatusCode = "401",
+                CustomStatusCode = ResponseStatusCode.Unauthorized.ToString(),
                 Message = "Invalid username or password.",
                 Data = null
             };
@@ -42,9 +43,9 @@ public class AuthService : IAuthService
 
         _refreshTokens[user.UserName!] = refreshToken;
 
-        return new BaseResponse<object>
+        return new ApiResponse<object>
         {
-            StatusCode = "200",
+            CustomStatusCode = ResponseStatusCode.Success.ToString(),
             Message = "Login is successful.",
             Data = new
             {
@@ -54,14 +55,14 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<BaseResponse<object>> RegisterAsync(RegisterDto registerDto)
+    public async Task<ApiResponse<object>> RegisterAsync(RegisterDto registerDto)
     {
         var registeredUser = await _userManager.FindByNameAsync(registerDto.Username);
         if (registeredUser is not null)
         {
-            return new BaseResponse<object>
+            return new ApiResponse<object>
             {
-                StatusCode = "400",
+                CustomStatusCode = ResponseStatusCode.BadRequest.ToString(),
                 Message = "Username already exists.",
                 Data = null
             };
@@ -76,17 +77,17 @@ public class AuthService : IAuthService
         var result = await _userManager.CreateAsync(newUser, registerDto.Password);
         if (!result.Succeeded)
         {
-            return new BaseResponse<object>
+            return new ApiResponse<object>
             {
-                StatusCode = "400",
+                CustomStatusCode = ResponseStatusCode.BadRequest.ToString(),
                 Message = string.Join("; ", result.Errors.Select(e => e.Description)),
                 Data = null
             };
         }
 
-        return new BaseResponse<object>
+        return new ApiResponse<object>
         {
-            StatusCode = "201",
+            CustomStatusCode = ResponseStatusCode.Created.ToString(),
             Message = "User registered successfully.",
             Data = new { Username = newUser.UserName, Email = newUser.Email }
         };
