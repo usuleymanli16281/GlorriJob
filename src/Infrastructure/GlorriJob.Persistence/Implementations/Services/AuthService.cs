@@ -23,22 +23,19 @@ public class AuthService : IAuthService
 	private UserManager<User> _userManager { get; }
 	private IMapper _mapper { get; }
 	private IConfiguration _configuration { get; }
-	private GlorriJobDbContext _context { get; }
 	public AuthService(IJwtService jwtService,
 		UserManager<User> userManager,
 		IMapper mapper,
-		IConfiguration configuration,
-		GlorriJobDbContext context)
+		IConfiguration configuration)
 	{
 		_jwtService = jwtService;
 		_userManager = userManager;
 		_mapper = mapper;
 		_configuration = configuration;
-		_context = context;
 	}
 	public async Task<BaseResponse<object>> RefreshToken(string refreshtoken)
 	{
-		var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken==refreshtoken);
+		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken==refreshtoken);
 		if(user is null)
 		{
 			return new BaseResponse<object>
@@ -184,6 +181,28 @@ public class AuthService : IAuthService
 			StatusCode = HttpStatusCode.Created,
 			Message = "User registered successfully.",
 			Data = new { Name = user.Name, Surname = user.Surname, Email = user.Email }
+		};
+	}
+
+	public BaseResponse<string?> GetEmailFromToken(string token)
+	{
+		var principal = _jwtService.GetPrincipalFromToken(token);
+		if(principal is null)
+		{
+			new BaseResponse<string?>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "Token is not valid",
+				Data = null
+			};
+		}
+		string? email = principal!.FindFirstValue(ClaimTypes.Email);
+		
+		return new BaseResponse<string?>
+		{
+			StatusCode = HttpStatusCode.OK,
+			Message = "Email is successfully retrieved",
+			Data = email
 		};
 	}
 }

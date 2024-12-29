@@ -42,4 +42,24 @@ public class JwtService : IJwtService
         return Convert.ToBase64String(randomNumber);
     }
 
+	public ClaimsPrincipal? GetPrincipalFromToken(string token)
+	{
+		var tokenHandler = new JwtSecurityTokenHandler();
+		var jwtSettings = _configuration.GetSection("JwtSettings");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!));
+
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = key,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+		};
+        var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+        return principal;
+	}
 }

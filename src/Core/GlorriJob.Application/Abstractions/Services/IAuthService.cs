@@ -8,4 +8,5 @@ public interface IAuthService
 	Task<BaseResponse<object>> RegisterAsync(RegisterDto registerDto);
 	Task<BaseResponse<object>> LoginAsync(LoginDto loginDto);
 	Task<BaseResponse<object>> RefreshToken(string refreshtoken);
+	BaseResponse<string?> GetEmailFromToken(string token);
 }
