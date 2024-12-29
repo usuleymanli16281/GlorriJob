@@ -28,14 +28,14 @@ namespace GlorriJob.Persistence.Implementations.Services
             _mapper = mapper;
         }
 
-        public async Task<ApiResponse<DepartmentGetDto>> CreateAsync(DepartmentCreateDto departmentCreateDto)
+        public async Task<BaseResponse<DepartmentGetDto>> CreateAsync(DepartmentCreateDto departmentCreateDto)
         {
             var validator = new DepartmentCreateValidator();
             var validationResult = await validator.ValidateAsync(departmentCreateDto);
 
             if (!validationResult.IsValid)
             {
-                return new ApiResponse<DepartmentGetDto>(
+                return new BaseResponse<DepartmentGetDto>(
                     "Validation failed: " + string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
                     ResponseStatusCode.BadRequest.ToString(),
                     null
@@ -50,7 +50,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 
             if (existedDepartment is not null)
             {
-                return new ApiResponse<DepartmentGetDto>(
+                return new BaseResponse<DepartmentGetDto>(
                     "The branch already has this department.",
                     ResponseStatusCode.Conflict.ToString(),
                     null
@@ -63,19 +63,19 @@ namespace GlorriJob.Persistence.Implementations.Services
 
             var departmentGetDto = _mapper.Map<DepartmentGetDto>(createdDepartment);
 
-            return new ApiResponse<DepartmentGetDto>(
+            return new BaseResponse<DepartmentGetDto>(
                 "Department created successfully.",
                 ResponseStatusCode.Created.ToString(),
                 departmentGetDto
             );
         }
 
-        public async Task<ApiResponse<bool>> DeleteAsync(Guid id)
+        public async Task<BaseResponse<bool>> DeleteAsync(Guid id)
         {
             var department = await _departmentRepository.GetByIdAsync(id);
             if (department is null || department.IsDeleted)
             {
-                return new ApiResponse<bool>(
+                return new BaseResponse<bool>(
                     "This department does not exist.",
                     ResponseStatusCode.NotFound.ToString(),
                     false
@@ -85,18 +85,18 @@ namespace GlorriJob.Persistence.Implementations.Services
             department.IsDeleted = true;
             await _departmentRepository.SaveChangesAsync();
 
-            return new ApiResponse<bool>(
+            return new BaseResponse<bool>(
                 "Department deleted successfully.",
                 ResponseStatusCode.Success.ToString(),
                 true
             );
         }
 
-        public async Task<ApiResponse<Pagination<DepartmentGetDto>>> GetAllAsync(int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
+        public async Task<BaseResponse<Pagination<DepartmentGetDto>>> GetAllAsync(int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
         {
             if (pageNumber < 1 || pageSize < 1)
             {
-                return new ApiResponse<Pagination<DepartmentGetDto>>(
+                return new BaseResponse<Pagination<DepartmentGetDto>>(
                     "Page number and page size should be greater than 0.",
                     ResponseStatusCode.BadRequest.ToString(),
                     null
@@ -126,19 +126,19 @@ namespace GlorriJob.Persistence.Implementations.Services
                 TotalPage = (int)Math.Ceiling((double)totalItems / pageSize),
             };
 
-            return new ApiResponse<Pagination<DepartmentGetDto>>(
+            return new BaseResponse<Pagination<DepartmentGetDto>>(
                 "Departments fetched successfully.",
                 ResponseStatusCode.Success.ToString(),
                 pagination
             );
         }
 
-        public async Task<ApiResponse<DepartmentGetDto>> GetByIdAsync(Guid id)
+        public async Task<BaseResponse<DepartmentGetDto>> GetByIdAsync(Guid id)
         {
             var department = await _departmentRepository.GetByIdAsync(id);
             if (department is null || department.IsDeleted)
             {
-                return new ApiResponse<DepartmentGetDto>(
+                return new BaseResponse<DepartmentGetDto>(
                     "This department does not exist.",
                     ResponseStatusCode.NotFound.ToString(),
                     null
@@ -147,18 +147,18 @@ namespace GlorriJob.Persistence.Implementations.Services
 
             var departmentGetDto = _mapper.Map<DepartmentGetDto>(department);
 
-            return new ApiResponse<DepartmentGetDto>(
+            return new BaseResponse<DepartmentGetDto>(
                 "Department fetched successfully.",
                 ResponseStatusCode.Success.ToString(),
                 departmentGetDto
             );
         }
 
-        public async Task<ApiResponse<Pagination<DepartmentGetDto>>> SearchByNameAsync(string name, int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
+        public async Task<BaseResponse<Pagination<DepartmentGetDto>>> SearchByNameAsync(string name, int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
         {
             if (pageNumber < 1 || pageSize < 1)
             {
-                return new ApiResponse<Pagination<DepartmentGetDto>>(
+                return new BaseResponse<Pagination<DepartmentGetDto>>(
                     "Page number and page size should be greater than 0.",
                     ResponseStatusCode.BadRequest.ToString(),
                     null
@@ -188,18 +188,18 @@ namespace GlorriJob.Persistence.Implementations.Services
                 TotalPage = (int)Math.Ceiling((double)totalItems / pageSize),
             };
 
-            return new ApiResponse<Pagination<DepartmentGetDto>>(
+            return new BaseResponse<Pagination<DepartmentGetDto>>(
                 "Department search completed successfully.",
                 ResponseStatusCode.Success.ToString(),
                 pagination
             );
         }
 
-        public async Task<ApiResponse<DepartmentUpdateDto>> UpdateAsync(Guid id, DepartmentUpdateDto departmentUpdateDto)
+        public async Task<BaseResponse<DepartmentUpdateDto>> UpdateAsync(Guid id, DepartmentUpdateDto departmentUpdateDto)
         {
             if (id != departmentUpdateDto.Id)
             {
-                return new ApiResponse<DepartmentUpdateDto>(
+                return new BaseResponse<DepartmentUpdateDto>(
                     "Id doesn't match with the root",
                     ResponseStatusCode.BadRequest.ToString(),
                     null
@@ -211,7 +211,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 
             if (!validationResult.IsValid)
             {
-                return new ApiResponse<DepartmentUpdateDto>(
+                return new BaseResponse<DepartmentUpdateDto>(
                     "Validation failed: " + string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
                     ResponseStatusCode.BadRequest.ToString(),
                     null
@@ -221,7 +221,7 @@ namespace GlorriJob.Persistence.Implementations.Services
             var department = await _departmentRepository.GetByIdAsync(id);
             if (department is null || department.IsDeleted)
             {
-                return new ApiResponse<DepartmentUpdateDto>(
+                return new BaseResponse<DepartmentUpdateDto>(
                     "This department does not exist.",
                     ResponseStatusCode.NotFound.ToString(),
                     null
@@ -234,7 +234,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 
             var updatedDepartmentDto = _mapper.Map<DepartmentUpdateDto>(department);
 
-            return new ApiResponse<DepartmentUpdateDto>(
+            return new BaseResponse<DepartmentUpdateDto>(
                 "Department updated successfully.",
                 ResponseStatusCode.Success.ToString(),
                 updatedDepartmentDto

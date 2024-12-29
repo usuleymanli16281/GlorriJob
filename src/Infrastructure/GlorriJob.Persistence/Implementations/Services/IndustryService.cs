@@ -27,14 +27,14 @@ public class IndustryService : IIndustryService
         _mapper = mapper;
     }
 
-    public async Task<ApiResponse<IndustryGetDto>> CreateAsync(IndustryCreateDto industryCreateDto)
+    public async Task<BaseResponse<IndustryGetDto>> CreateAsync(IndustryCreateDto industryCreateDto)
     {
         var validator = new IndustryCreateValidator();
         var validationResult = await validator.ValidateAsync(industryCreateDto);
 
         if (!validationResult.IsValid)
         {
-            return new ApiResponse<IndustryGetDto>(
+            return new BaseResponse<IndustryGetDto>(
              "Validation failed: " + string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
              ResponseStatusCode.BadRequest.ToString(),
              null
@@ -48,7 +48,7 @@ public class IndustryService : IIndustryService
 
         if (existedIndustry is not null)
         {
-            return new ApiResponse<IndustryGetDto>(
+            return new BaseResponse<IndustryGetDto>(
                 $"An industry with the name '{industryCreateDto.Name}' already exists.", 
                 ResponseStatusCode.Conflict.ToString(), 
                 null
@@ -61,7 +61,7 @@ public class IndustryService : IIndustryService
 
         var industryGetDto = _mapper.Map<IndustryGetDto>(createdIndustry);
 
-        return new ApiResponse<IndustryGetDto>(
+        return new BaseResponse<IndustryGetDto>(
             "Industry created successfully.", 
             ResponseStatusCode.Created.ToString(), 
             industryGetDto
@@ -69,12 +69,12 @@ public class IndustryService : IIndustryService
 
     }
 
-    public async Task<ApiResponse<bool>> DeleteAsync(Guid id)
+    public async Task<BaseResponse<bool>> DeleteAsync(Guid id)
     {
         var industry = await _industryRepository.GetByIdAsync(id);
         if (industry is null || industry.IsDeleted)
         {
-            return new ApiResponse<bool>(
+            return new BaseResponse<bool>(
                 "This industry does not exist.", 
                 ResponseStatusCode.NotFound.ToString(), 
                 false);
@@ -83,17 +83,17 @@ public class IndustryService : IIndustryService
         industry.IsDeleted = true;
         await _industryRepository.SaveChangesAsync();
 
-        return new ApiResponse<bool>(
+        return new BaseResponse<bool>(
             "Industry deleted successfully.", 
             ResponseStatusCode.Success.ToString(), 
             true);
     }
 
 
-    public async Task<ApiResponse<Pagination<IndustryGetDto>>> GetAllAsync(int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
+    public async Task<BaseResponse<Pagination<IndustryGetDto>>> GetAllAsync(int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
     {
         if (pageNumber < 1 || pageSize < 1)
-            return new ApiResponse<Pagination<IndustryGetDto>>(
+            return new BaseResponse<Pagination<IndustryGetDto>>(
                 "Page number and page size should be greater than 0.", 
                 ResponseStatusCode.BadRequest.ToString(), 
                 null);
@@ -121,29 +121,29 @@ public class IndustryService : IIndustryService
             TotalPage = (int)Math.Ceiling((double)totalItems / pageSize),
         };
 
-        return new ApiResponse<Pagination<IndustryGetDto>>(
+        return new BaseResponse<Pagination<IndustryGetDto>>(
             "Industries fetched successfully.", 
             ResponseStatusCode.Success.ToString(), 
             pagination);
     }
 
 
-    public async Task<ApiResponse<IndustryGetDto>> GetByIdAsync(Guid id)
+    public async Task<BaseResponse<IndustryGetDto>> GetByIdAsync(Guid id)
     {
         var industry = await _industryRepository.GetByIdAsync(id);
         if (industry is null || industry.IsDeleted)
         {
-            return new ApiResponse<IndustryGetDto>("This industry does not exist.", ResponseStatusCode.NotFound.ToString(), null);
+            return new BaseResponse<IndustryGetDto>("This industry does not exist.", ResponseStatusCode.NotFound.ToString(), null);
         }
 
         var industryGetDto = _mapper.Map<IndustryGetDto>(industry);
-        return new ApiResponse<IndustryGetDto>("Industry fetched successfully.", ResponseStatusCode.Success.ToString(), industryGetDto);
+        return new BaseResponse<IndustryGetDto>("Industry fetched successfully.", ResponseStatusCode.Success.ToString(), industryGetDto);
     }
 
-    public async Task<ApiResponse<Pagination<IndustryGetDto>>> SearchByNameAsync(string name, int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
+    public async Task<BaseResponse<Pagination<IndustryGetDto>>> SearchByNameAsync(string name, int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
     {
         if (pageNumber < 1 || pageSize < 1)
-            return new ApiResponse<Pagination<IndustryGetDto>>(
+            return new BaseResponse<Pagination<IndustryGetDto>>(
                 "Page number and page size should be greater than 0.", 
                 ResponseStatusCode.BadRequest.ToString(), 
                 null);
@@ -171,17 +171,17 @@ public class IndustryService : IIndustryService
             TotalPage = (int)Math.Ceiling((double)totalItem / pageSize),
         };
 
-        return new ApiResponse<Pagination<IndustryGetDto>>(
+        return new BaseResponse<Pagination<IndustryGetDto>>(
             "Industries search completed successfully.", 
             ResponseStatusCode.Success.ToString(), 
             pagination);
     }
 
-    public async Task<ApiResponse<IndustryUpdateDto>> UpdateAsync(Guid id, IndustryUpdateDto industryUpdateDto)
+    public async Task<BaseResponse<IndustryUpdateDto>> UpdateAsync(Guid id, IndustryUpdateDto industryUpdateDto)
     {
         if (id != industryUpdateDto.Id)
         {
-            return new ApiResponse<IndustryUpdateDto>(
+            return new BaseResponse<IndustryUpdateDto>(
             "The ID provided does not match the ID in the URL parameter.",
             ResponseStatusCode.BadRequest.ToString(),
             null
@@ -193,7 +193,7 @@ public class IndustryService : IIndustryService
 
         if (!validationResult.IsValid)
         {
-            return new ApiResponse<IndustryUpdateDto>(
+            return new BaseResponse<IndustryUpdateDto>(
             "Validation failed: " + string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
             ResponseStatusCode.BadRequest.ToString(),
             null
@@ -203,7 +203,7 @@ public class IndustryService : IIndustryService
         var industry = await _industryRepository.GetByIdAsync(id);
         if (industry is null || industry.IsDeleted)
         {
-            return new ApiResponse<IndustryUpdateDto>(
+            return new BaseResponse<IndustryUpdateDto>(
              "The requested industry does not exist or is deleted.",
              ResponseStatusCode.NotFound.ToString(),
              null
@@ -217,7 +217,7 @@ public class IndustryService : IIndustryService
 
         var updatedIndustryDto = _mapper.Map<IndustryUpdateDto>(industry);
 
-        return new ApiResponse<IndustryUpdateDto>(
+        return new BaseResponse<IndustryUpdateDto>(
          "Industry updated successfully.",
          ResponseStatusCode.Success.ToString(),
          updatedIndustryDto
