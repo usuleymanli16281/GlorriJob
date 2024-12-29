@@ -30,7 +30,7 @@ namespace GlorriJob.WebAPI.Controllers
 			var response = await _cityService.GetByIdAsync(id);
 			return StatusCode((int)response.StatusCode, response); ;
 		}
-		[HttpGet]
+		[HttpGet("search")]
 		public async Task<IActionResult> SearchByName([FromQuery]string name, int pageNumber, int pageSize, bool isPaginated = true)
 		{
 			var response = await _cityService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);

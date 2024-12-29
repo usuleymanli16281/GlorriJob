@@ -202,8 +202,7 @@ internal class CityService : ICityService
 				Data = null
 			};
         }
-        var modifiedCity = _mapper.Map<City>(cityUpdateDto);
-        _cityRepository.Update(modifiedCity);
+        city.Name = cityUpdateDto.Name;
         await _cityRepository.SaveChangesAsync();
 		return new BaseResponse<CityUpdateDto>
 		{
