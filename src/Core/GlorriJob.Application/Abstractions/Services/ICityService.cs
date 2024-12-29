@@ -13,5 +13,4 @@ public interface ICityService
     Task<BaseResponse<CityCreateDto>> CreateAsync(CityCreateDto createCityDto);
     Task<BaseResponse<CityUpdateDto>> UpdateAsync(Guid id, CityUpdateDto cityUpdateDto);
     Task<BaseResponse<object>> DeleteAsync(Guid id);
-
 }

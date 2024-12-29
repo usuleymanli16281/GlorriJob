@@ -1,5 +1,6 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Identity;
+using GlorriJob.Domain;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GlorriJob.WebAPI.Controllers;
@@ -26,14 +27,15 @@ public class AuthsController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         var response = await _authService.LoginAsync(loginDto);
-		return StatusCode((int)response.StatusCode, response);
+		    return StatusCode((int)response.StatusCode, response);
 	}
+
 
     [HttpPost("[action]")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         var response = await _authService.RegisterAsync(registerDto);
-		return StatusCode((int)response.StatusCode, response);
+		    return StatusCode((int)response.StatusCode, response);
 	}
     [HttpGet("[action]")]
     public IActionResult GetEmailFromToken([FromQuery] string token)
