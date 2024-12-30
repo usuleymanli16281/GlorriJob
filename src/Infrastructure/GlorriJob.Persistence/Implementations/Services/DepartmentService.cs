@@ -240,14 +240,30 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 
+            var existingDepartment = await _departmentRepository.GetByFilter(
+        expression: d => d.Name.ToLower() == departmentUpdateDto.Name.ToLower() && d.Id != id && !d.IsDeleted,
+        isTracking: false);
+
+            if (existingDepartment != null)
+            {
+                return new BaseResponse<DepartmentUpdateDto>
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = $"A department with the name '{departmentUpdateDto.Name}' already exists.",
+                    Data = null
+                };
+            }
+
             department.Name = departmentUpdateDto.Name;
             await _departmentRepository.SaveChangesAsync();
-			return new BaseResponse<DepartmentUpdateDto>
-			{
-				StatusCode = HttpStatusCode.OK,
-				Message = "The department is successfully updated.",
-				Data = departmentUpdateDto
-			};
+
+            return new BaseResponse<DepartmentUpdateDto>
+            {
+                StatusCode = HttpStatusCode.OK,
+                Message = "The department is successfully updated.",
+                Data = departmentUpdateDto
+            };
+
         }
     }
 

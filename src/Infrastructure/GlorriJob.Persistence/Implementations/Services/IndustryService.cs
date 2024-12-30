@@ -201,51 +201,67 @@ public class IndustryService : IIndustryService
 		};
 	}
 
-    public async Task<BaseResponse<IndustryUpdateDto>> UpdateAsync(Guid id, IndustryUpdateDto industryUpdateDto)
+    public async Task<BaseResponse<IndustryGetDto>> UpdateAsync(Guid id, IndustryUpdateDto industryUpdateDto)
     {
         if (id != industryUpdateDto.Id)
         {
-			return new BaseResponse<IndustryUpdateDto>
-			{
-				StatusCode = HttpStatusCode.BadRequest,
-				Message = "Id does not match with the root.",
-				Data = null
-			};
-		}
+            return new BaseResponse<IndustryGetDto>
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "Id does not match with the route parameter.",
+                Data = null
+            };
+        }
 
         var validator = new IndustryUpdateValidator();
         var validationResult = await validator.ValidateAsync(industryUpdateDto);
 
         if (!validationResult.IsValid)
         {
-			return new BaseResponse<IndustryUpdateDto>
-			{
-				StatusCode = HttpStatusCode.BadRequest,
-				Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
-				Data = null
-			};
-		}
+            return new BaseResponse<IndustryGetDto>
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
+                Data = null
+            };
+        }
 
         var industry = await _industryRepository.GetByIdAsync(id);
-        if (industry is null || industry.IsDeleted)
+        if (industry == null || industry.IsDeleted)
         {
-			return new BaseResponse<IndustryUpdateDto>
-			{
-				StatusCode = HttpStatusCode.BadRequest,
-				Message = "The industry does not exist",
-				Data = null
-			};
-		}
+            return new BaseResponse<IndustryGetDto>
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "The industry does not exist.",
+                Data = null
+            };
+        }
 
+        var existedIndustry = await _industryRepository.GetByFilter(
+            expression: i => i.Name.ToLower() == industryUpdateDto.Name.ToLower() && i.Id != id && !i.IsDeleted,
+            isTracking: false);
+
+        if (existedIndustry != null)
+        {
+            return new BaseResponse<IndustryGetDto>
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = $"An industry with the name '{industryUpdateDto.Name}' already exists.",
+                Data = null
+            };
+        }
 
         industry.Name = industryUpdateDto.Name;
         await _industryRepository.SaveChangesAsync();
 
-		return new BaseResponse<IndustryUpdateDto>
-		{
-			StatusCode = HttpStatusCode.OK,
-			Message = "The industry is successfully updated",
-			Data = industryUpdateDto
-		};
-	}
+        var updatedIndustryDto = _mapper.Map<IndustryGetDto>(industry);
+
+        return new BaseResponse<IndustryGetDto>
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "The industry has been successfully updated.",
+            Data = updatedIndustryDto
+        };
+    }
+
 }
