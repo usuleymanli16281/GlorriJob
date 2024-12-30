@@ -17,21 +17,21 @@ namespace GlorriJob.Persistence.Implementations.Services;
 
 public class CityService : ICityService
 {
-    private ICityRepository _cityRepository { get; }
-    private IMapper _mapper { get; }
+	private ICityRepository _cityRepository { get; }
+	private IMapper _mapper { get; }
 
-    public CityService(ICityRepository cityRepository, IMapper mapper)
-    {
-        _cityRepository = cityRepository;
-        _mapper = mapper;
-    }
-    public async Task<BaseResponse<CityCreateDto>> CreateAsync(CityCreateDto cityCreateDto)
-    {
-        var validator = new CityCreateValidator();
-        var validationResult = await validator.ValidateAsync(cityCreateDto);
+	public CityService(ICityRepository cityRepository, IMapper mapper)
+	{
+		_cityRepository = cityRepository;
+		_mapper = mapper;
+	}
+	public async Task<BaseResponse<CityCreateDto>> CreateAsync(CityCreateDto cityCreateDto)
+	{
+		var validator = new CityCreateValidator();
+		var validationResult = await validator.ValidateAsync(cityCreateDto);
 
-        if (!validationResult.IsValid)
-        {
+		if (!validationResult.IsValid)
+		{
 			return new BaseResponse<CityCreateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
@@ -40,45 +40,45 @@ public class CityService : ICityService
 			};
 		}
 		var existedCity = await _cityRepository.GetByFilter(expression:
-            c => c.Name == cityCreateDto.Name && !c.IsDeleted,
-            isTracking: false);
+			c => c.Name == cityCreateDto.Name && !c.IsDeleted,
+			isTracking: false);
 
-        if (existedCity is not null)
-        {
-			    return new BaseResponse<CityCreateDto>
-			    {
-				    StatusCode = HttpStatusCode.BadRequest,
-				    Message = "The city already exists.",
-				    Data = null
-			    };
-        }
+		if (existedCity is not null)
+		{
+			return new BaseResponse<CityCreateDto>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "The city already exists.",
+				Data = null
+			};
+		}
 
-        var createdCity = _mapper.Map<City>(cityCreateDto);
-        await _cityRepository.AddAsync(createdCity);
-        await _cityRepository.SaveChangesAsync();
+		var createdCity = _mapper.Map<City>(cityCreateDto);
+		await _cityRepository.AddAsync(createdCity);
+		await _cityRepository.SaveChangesAsync();
 		return new BaseResponse<CityCreateDto>
 		{
 			StatusCode = HttpStatusCode.OK,
 			Message = "The city is successfully created",
 			Data = cityCreateDto
 		};
-    }
+	}
 
-    public async Task<BaseResponse<object>> DeleteAsync(Guid id)
-    {
-        var city = await _cityRepository.GetByIdAsync(id);
-        if (city is null || city.IsDeleted)
-        {
-			    return new BaseResponse<object>
-			    {
-				    StatusCode = HttpStatusCode.BadRequest,
-				    Message = "The city does not exist.",
-				    Data = null
-			    };
-        }
+	public async Task<BaseResponse<object>> DeleteAsync(Guid id)
+	{
+		var city = await _cityRepository.GetByIdAsync(id);
+		if (city is null || city.IsDeleted)
+		{
+			return new BaseResponse<object>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "The city does not exist.",
+				Data = null
+			};
+		}
 
-        city.IsDeleted = true;
-        await _cityRepository.SaveChangesAsync();
+		city.IsDeleted = true;
+		await _cityRepository.SaveChangesAsync();
 		return new BaseResponse<object>
 		{
 			StatusCode = HttpStatusCode.OK,
@@ -121,27 +121,27 @@ public class CityService : ICityService
 	}
 
 	public async Task<BaseResponse<CityGetDto>> GetByIdAsync(Guid id)
-    {
-        var city = await _cityRepository.GetByIdAsync(id);
-        if (city is null || city.IsDeleted)
-        {
-			    return new BaseResponse<CityGetDto>
-			    {
-				    StatusCode = HttpStatusCode.BadRequest,
-				    Message = "The city does not exist.",
-				    Data = null
-			    };
-		    }
+	{
+		var city = await _cityRepository.GetByIdAsync(id);
+		if (city is null || city.IsDeleted)
+		{
+			return new BaseResponse<CityGetDto>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "The city does not exist.",
+				Data = null
+			};
+		}
 		return new BaseResponse<CityGetDto>
 		{
 			StatusCode = HttpStatusCode.OK,
 			Data = _mapper.Map<CityGetDto>(city)
-	  };
+		};
 
-    }
+	}
 
-    public async Task<BaseResponse<Pagination<CityGetDto>>> SearchByNameAsync(string name, int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
-    {
+	public async Task<BaseResponse<Pagination<CityGetDto>>> SearchByNameAsync(string name, int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
+	{
 		if (pageNumber < 1 || pageSize < 1)
 		{
 			return new BaseResponse<Pagination<CityGetDto>>
@@ -175,10 +175,10 @@ public class CityService : ICityService
 	}
 
 
-    public async Task<BaseResponse<CityUpdateDto>> UpdateAsync(Guid id, CityUpdateDto cityUpdateDto)
-    {
-        if (id != cityUpdateDto.Id)
-        {
+	public async Task<BaseResponse<CityUpdateDto>> UpdateAsync(Guid id, CityUpdateDto cityUpdateDto)
+	{
+		if (id != cityUpdateDto.Id)
+		{
 			return new BaseResponse<CityUpdateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
@@ -194,22 +194,22 @@ public class CityService : ICityService
 			return new BaseResponse<CityUpdateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = string.Join(";",validationResult.Errors.Select(e => e.ErrorMessage)),
+				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage)),
 				Data = null
 			};
 		}
 		var city = await _cityRepository.GetByIdAsync(id);
-        if (city is null || city.IsDeleted)
-        {
+		if (city is null || city.IsDeleted)
+		{
 			return new BaseResponse<CityUpdateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
 				Message = "This city does not exist.",
 				Data = null
 			};
-        }
-        city.Name = cityUpdateDto.Name;
-        await _cityRepository.SaveChangesAsync();
+		}
+		city.Name = cityUpdateDto.Name;
+		await _cityRepository.SaveChangesAsync();
 		return new BaseResponse<CityUpdateDto>
 		{
 			StatusCode = HttpStatusCode.OK,
@@ -217,6 +217,6 @@ public class CityService : ICityService
 			Data = cityUpdateDto
 		};
 
-    }
+	}
 }
 
