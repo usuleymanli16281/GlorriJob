@@ -13,7 +13,7 @@ namespace GlorriJob.Domain.Entities
 		public int EmployeeCount { get; set; }
 		public int FoundedYear { get; set; }
 		public string LogoPath { get; set; } = null!;
-		public string? PosterPath { get; set; } = null!;
+		public string? PosterPath { get; set; }
 		public int ExistedVacancy { get; set; }
 		public CompanyDetail CompanyDetail { get; set; } = null!;
 		public Guid IndustryId { get; set; }
