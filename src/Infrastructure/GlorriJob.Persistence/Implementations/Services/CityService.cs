@@ -208,14 +208,31 @@ public class CityService : ICityService
 				Data = null
 			};
         }
+
+        var existingCity = await _cityRepository.GetByFilter(
+        expression: c => c.Name.ToLower() == cityUpdateDto.Name.ToLower() && c.Id != id && !c.IsDeleted,
+        isTracking: false);
+
+        if (existingCity != null)
+        {
+            return new BaseResponse<CityUpdateDto>
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = $"A city with the name '{cityUpdateDto.Name}' already exists.",
+                Data = null
+            };
+        }
+
         city.Name = cityUpdateDto.Name;
         await _cityRepository.SaveChangesAsync();
-		return new BaseResponse<CityUpdateDto>
-		{
-			StatusCode = HttpStatusCode.OK,
-			Message = "The city is successfully updated.",
-			Data = cityUpdateDto
-		};
+
+        return new BaseResponse<CityUpdateDto>
+        {
+            StatusCode = HttpStatusCode.OK,
+            Message = "The city is successfully updated.",
+            Data = cityUpdateDto
+        };
+
 
     }
 }

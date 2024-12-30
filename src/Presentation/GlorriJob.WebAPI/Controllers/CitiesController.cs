@@ -18,8 +18,11 @@ namespace GlorriJob.WebAPI.Controllers
 		}
 
 		[HttpGet("all")]
-		public async Task<IActionResult> GetAll(int pageNumber, int pageSize, bool isPaginated = true)
-		{
+		public async Task<IActionResult> GetAll(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] bool isPaginated = true)
+        {
 			var response = await _cityService.GetAllAsync(pageNumber, pageSize, isPaginated);
 			return StatusCode((int)response.StatusCode, response);
 		}
@@ -31,8 +34,12 @@ namespace GlorriJob.WebAPI.Controllers
 			return StatusCode((int)response.StatusCode, response); ;
 		}
 		[HttpGet("search")]
-		public async Task<IActionResult> SearchByName([FromQuery]string name, int pageNumber, int pageSize, bool isPaginated = true)
-		{
+		public async Task<IActionResult> SearchByName(
+		[FromQuery]string name,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] bool isPaginated = true)
+        {
 			var response = await _cityService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);
 			return StatusCode((int)response.StatusCode, response);
 		}
