@@ -12,6 +12,7 @@ namespace GlorriJob.Application.Dtos.Company
 	{
 		public Guid Id { get; set; }
 		public required string Name { get; set; }
+		public int ExistedVacancy { get; set; }
 		public int EmployeeCount { get; set; }
 		public int FoundedYear { get; set; }
 		public string? PosterPath {  get; set; } 

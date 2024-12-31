@@ -73,7 +73,7 @@ public class CategoryService : ICategoryService
     public async Task<BaseResponse<object>> DeleteAsync(Guid id)
     {
         var category = await _categoryRepository.GetByIdAsync(id);
-        if (category == null || category.IsDeleted)
+        if (category is null || category.IsDeleted)
         {
             return new BaseResponse<object>
             {
