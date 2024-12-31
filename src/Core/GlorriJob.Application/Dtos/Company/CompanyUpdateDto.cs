@@ -9,11 +9,14 @@ namespace GlorriJob.Application.Dtos.Company
 	public record CompanyUpdateDto
 	{
 		public Guid Id { get; init; }
-		public required string Name { get; init; }
-		public int EmployeeCount { get; init; }
-		public int FoundedYear { get; init; }
-		public string? PosterPath { get; init; }
-		public required string LogoPath { get; init; }
-		public Guid IndustryId {  get; init; }
+		public required string Name { get; set; }
+		public int EmployeeCount { get; set; }
+		public int FoundedYear { get; set; }
+		public string? PosterPath { get; set; }
+		public required string LogoPath { get; set; }
+		public Guid IndustryId {  get; set; }
+		public List<Guid>? DepartmentIds { get; set; }
+		public List<Guid>? BranchIds { get; set; }
+		public List<Guid>? BiographyIds { get; set; }
 	}
 }

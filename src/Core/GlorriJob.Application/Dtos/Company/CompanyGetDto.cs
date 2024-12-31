@@ -1,4 +1,5 @@
-﻿using GlorriJob.Application.Dtos.Industry;
+﻿using GlorriJob.Application.Dtos.Department;
+using GlorriJob.Application.Dtos.Industry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,13 @@ namespace GlorriJob.Application.Dtos.Company
 {
 	public record CompanyGetDto
 	{
-		public Guid Id { get; init; }
-		public required string Name { get; init; }
-		public int EmployeeCount { get; init; }
-		public int FoundedYear { get; init; }
-		public string? PosterPath {  get; init; } 
-		public required string LogoPath { get; init; }
-		public required IndustryGetDto IndustryGetDto { get; init; }
+		public Guid Id { get; set; }
+		public required string Name { get; set; }
+		public int EmployeeCount { get; set; }
+		public int FoundedYear { get; set; }
+		public string? PosterPath {  get; set; } 
+		public required string LogoPath { get; set; }
+		public required IndustryGetDto IndustryGetDto { get; set; }
+		public List<DepartmentGetDto> Departments { get; set; } = new List<DepartmentGetDto>();
 	}
 }
