@@ -43,6 +43,7 @@ public static class ServiceRegistrationExtension
         services.AddScoped<IIndustryService, IndustryService>();
 
         services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddScoped<ICompanyService, CompanyService>();
 
         services.AddScoped<IAuthService, AuthService>();
 
