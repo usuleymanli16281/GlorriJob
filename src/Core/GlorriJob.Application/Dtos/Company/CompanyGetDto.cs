@@ -18,6 +18,6 @@ namespace GlorriJob.Application.Dtos.Company
 		public string? PosterPath {  get; set; } 
 		public required string LogoPath { get; set; }
 		public required IndustryGetDto IndustryGetDto { get; set; }
-		public List<DepartmentGetDto> Departments { get; set; } = new List<DepartmentGetDto>();
+		public List<DepartmentGetDto> DepartmentGetDtos { get; set; } = new List<DepartmentGetDto>();
 	}
 }

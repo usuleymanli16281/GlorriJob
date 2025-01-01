@@ -3,12 +3,14 @@ using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Category;
 using GlorriJob.Application.Dtos.Company;
+using GlorriJob.Application.Dtos.Department;
 using GlorriJob.Application.Dtos.Industry;
 using GlorriJob.Application.Validations.Company;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using System.Net;
 
 
@@ -48,12 +50,15 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			// continue
+			var createdCompany = _mapper.Map<Company>(companyCreateDto);
+			await _companyRepository.AddAsync(createdCompany);
+			await _companyRepository.SaveChangesAsync();
+			var companyGetDto = _mapper.Map<CompanyGetDto>(createdCompany);
 			return new BaseResponse<CompanyGetDto>
 			{
-				StatusCode = HttpStatusCode.BadRequest,
-				Message = "",
-				Data = null
+				StatusCode = HttpStatusCode.OK,
+				Message = "The company is successfully created.",
+				Data = companyGetDto
 			};
 		}
 
@@ -90,7 +95,10 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			IQueryable<Company> query = _companyRepository.GetAll(c => !c.IsDeleted);
+			IQueryable<Company> query = _companyRepository.GetAll(
+				expression: c => !c.IsDeleted , 
+				includes: new[] { "Industry", "Departments" });
+
 			int totalItems = await query.CountAsync();
 			if (isPaginated)
 			{
@@ -112,6 +120,11 @@ namespace GlorriJob.Persistence.Implementations.Services
 						Id = c.Industry.Id,
 						Name = c.Industry.Name
 					},
+					DepartmentGetDtos = c.Departments.Select(d => new DepartmentGetDto
+					{
+						Id = d.Id,
+						Name = d.Name,
+					}).ToList()
 				}).ToListAsync();
 			return new BaseResponse<Pagination<CompanyGetDto>>
 			{
@@ -130,8 +143,10 @@ namespace GlorriJob.Persistence.Implementations.Services
 
 		public async Task<BaseResponse<CompanyGetDto>> GetByIdAsync(Guid id)
 		{
-			var company = await _companyRepository.GetByIdAsync(id);
-			if (company is null || company.IsDeleted)
+			var company = await _companyRepository.GetByFilter(
+				expression: c => c.Id == id && !c.IsDeleted,
+				includes: new[] {"Industry","Departments"});
+			if (company is null)
 			{
 				return new BaseResponse<CompanyGetDto>
 				{
@@ -159,7 +174,11 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			IQueryable<Company> query = _companyRepository.GetAll(c => !c.IsDeleted && c.Name.ToLower().Contains(name.ToLower()));
+			IQueryable<Company> query = _companyRepository.GetAll(
+				expression: c => !c.IsDeleted &&
+				c.Name.ToLower().Contains(name.ToLower()), 
+				includes: new[] { "Industry", "Departments" });
+
 			int totalItems = await query.CountAsync();
 			if (isPaginated)
 			{
@@ -181,6 +200,11 @@ namespace GlorriJob.Persistence.Implementations.Services
 						Id = c.Industry.Id,
 						Name = c.Industry.Name
 					},
+					DepartmentGetDtos = c.Departments.Select(d => new DepartmentGetDto
+					{
+						Id = d.Id,
+						Name = d.Name,
+					}).ToList()
 				}).ToListAsync();
 			return new BaseResponse<Pagination<CompanyGetDto>>
 			{
@@ -230,7 +254,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			var existedCompany = await _companyRepository.GetByFilter(c =>
-			c.Name.ToLower().Contains(companyUpdateDto.Name) &&
+			c.Name.ToLower().Contains(companyUpdateDto.Name.ToLower()) &&
 			!c.IsDeleted);
 			
 			if(existedCompany is not null)
@@ -245,6 +269,8 @@ namespace GlorriJob.Persistence.Implementations.Services
 			company.Name = companyUpdateDto.Name;
 			company.EmployeeCount = companyUpdateDto.EmployeeCount;
 			company.FoundedYear = companyUpdateDto.FoundedYear;
+			company.LogoPath = companyUpdateDto.LogoPath;
+			company.PosterPath = companyUpdateDto.PosterPath;
 			company.IndustryId = companyUpdateDto.IndustryId;
 
 			await _companyRepository.SaveChangesAsync();	

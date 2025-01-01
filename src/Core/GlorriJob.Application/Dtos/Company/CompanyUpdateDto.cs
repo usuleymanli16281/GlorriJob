@@ -15,8 +15,5 @@ namespace GlorriJob.Application.Dtos.Company
 		public string? PosterPath { get; set; }
 		public required string LogoPath { get; set; }
 		public Guid IndustryId {  get; set; }
-		public List<Guid>? DepartmentIds { get; set; }
-		public List<Guid>? BranchIds { get; set; }
-		public List<Guid>? BiographyIds { get; set; }
 	}
 }
