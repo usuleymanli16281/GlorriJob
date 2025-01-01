@@ -19,10 +19,12 @@ namespace GlorriJob.Persistence.Implementations.Services
 	public class CompanyService : ICompanyService
 	{
 		private ICompanyRepository _companyRepository { get; }
+		private IIndustryService _industryService { get; }
 		private IMapper _mapper { get; }
-        public CompanyService(ICompanyRepository companyRepository, IMapper mapper)
+        public CompanyService(ICompanyRepository companyRepository, IMapper mapper, IIndustryService industryService)
         {
             _companyRepository = companyRepository;
+			_industryService = industryService;
 			_mapper = mapper;
         }
         public async Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto companyCreateDto)
@@ -38,7 +40,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			var existedCompany = _companyRepository.GetByFilter(c => 
+			var existedCompany = await _companyRepository.GetByFilter(c => 
 			c.Name.ToLower().Contains(companyCreateDto.Name.ToLower()) && 
 			!c.IsDeleted);
 			if(existedCompany is not null) 
@@ -47,6 +49,16 @@ namespace GlorriJob.Persistence.Implementations.Services
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = $"A company with the name '{companyCreateDto.Name}' already exists.",
+					Data = null
+				};
+			}
+			var industryResponse = await _industryService.GetByIdAsync(companyCreateDto.IndustryId);
+			if(industryResponse.Data is null )
+			{
+				return new BaseResponse<CompanyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"The IndustryId does not exist.",
 					Data = null
 				};
 			}
