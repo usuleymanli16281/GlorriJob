@@ -20,12 +20,14 @@ namespace GlorriJob.Persistence.Implementations.Services
 	{
 		private ICompanyRepository _companyRepository { get; }
 		private IIndustryService _industryService { get; }
+		private IImageKitService _imageKitService { get; }
 		private IMapper _mapper { get; }
-        public CompanyService(ICompanyRepository companyRepository, IMapper mapper, IIndustryService industryService)
+        public CompanyService(ICompanyRepository companyRepository, IMapper mapper, IIndustryService industryService, IImageKitService imageKitService)
         {
             _companyRepository = companyRepository;
 			_industryService = industryService;
 			_mapper = mapper;
+			_imageKitService = imageKitService;
         }
         public async Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto companyCreateDto)
 		{
@@ -62,6 +64,14 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
+			string imageName = companyCreateDto.Logo.FileName;
+			string tempImagePath = Path.Combine(Path.GetTempPath(), imageName);
+			using (var stream = new FileStream(tempImagePath, FileMode.Create))
+			{
+				await companyCreateDto.Logo.CopyToAsync(stream);
+			}
+			var response = await _imageKitService.AddImageAsync(tempImagePath, imageName);
+			File.Delete(tempImagePath);
 			var createdCompany = _mapper.Map<Company>(companyCreateDto);
 			await _companyRepository.AddAsync(createdCompany);
 			await _companyRepository.SaveChangesAsync();
@@ -275,6 +285,16 @@ namespace GlorriJob.Persistence.Implementations.Services
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = $"A company with the name '{companyUpdateDto.Name}' already exists.",
+					Data = null
+				};
+			}
+			var industryResponse = await _industryService.GetByIdAsync(companyUpdateDto.IndustryId);
+			if (industryResponse.Data is null)
+			{
+				return new BaseResponse<CompanyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"The IndustryId does not exist.",
 					Data = null
 				};
 			}
