@@ -5,7 +5,9 @@ namespace GlorriJob.Application.Abstractions.Services
 {
 	public interface IImageKitService
 	{
-		public Task<BaseResponse<string>> AddImageAsync(string imagePath, string imageName);
-		public Task<string> UpdateImageAsync(string imagePath, string imageName);
+		Task<BaseResponse<string>> AddImageAsync(string imagePath, string imageName);
+		Task<string> UpdateImageAsync(string imagePath, string imageName);
+		Task<BaseResponse<object>> DeleteImageAsync(string imageId);
+		Task<BaseResponse<string>> GetImageId(string imagePath);
 	}
 }

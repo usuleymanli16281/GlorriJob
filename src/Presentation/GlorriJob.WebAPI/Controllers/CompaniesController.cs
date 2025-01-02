@@ -33,13 +33,13 @@ namespace GlorriJob.WebAPI.Controllers
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpPost]
-		public async Task<IActionResult> Create([FromBody] CompanyCreateDto companyCreateDto) 
+		public async Task<IActionResult> Create([FromForm] CompanyCreateDto companyCreateDto) 
 		{
 			var response = await _companyService.CreateAsync(companyCreateDto);
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpPut("{id}")]
-		public async Task<IActionResult> Update(Guid id, CompanyUpdateDto companyUpdateDto)
+		public async Task<IActionResult> Update(Guid id, [FromForm] CompanyUpdateDto companyUpdateDto)
 		{
 			var response = await _companyService.UpdateAsync(id, companyUpdateDto);
 			return StatusCode((int)response.StatusCode, response);

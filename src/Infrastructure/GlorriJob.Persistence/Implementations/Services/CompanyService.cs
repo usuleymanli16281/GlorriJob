@@ -9,6 +9,7 @@ using GlorriJob.Application.Validations.Company;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Shared;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Net;
@@ -33,7 +34,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 		{
 			var validation = new CompanyCreateValidator();
 			var validationResult = await validation.ValidateAsync(companyCreateDto);
-			if(!validationResult.IsValid )
+			if (!validationResult.IsValid)
 			{
 				return new BaseResponse<CompanyGetDto>
 				{
@@ -42,10 +43,10 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			var existedCompany = await _companyRepository.GetByFilter(c => 
-			c.Name.ToLower().Contains(companyCreateDto.Name.ToLower()) && 
+			var existedCompany = await _companyRepository.GetByFilter(c =>
+			c.Name.ToLower().Contains(companyCreateDto.Name.ToLower()) &&
 			!c.IsDeleted);
-			if(existedCompany is not null) 
+			if (existedCompany is not null)
 			{
 				return new BaseResponse<CompanyGetDto>
 				{
@@ -55,7 +56,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			var industryResponse = await _industryService.GetByIdAsync(companyCreateDto.IndustryId);
-			if(industryResponse.Data is null )
+			if (industryResponse.Data is null)
 			{
 				return new BaseResponse<CompanyGetDto>
 				{
@@ -64,15 +65,34 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			string imageName = companyCreateDto.Logo.FileName;
-			string tempImagePath = Path.Combine(Path.GetTempPath(), imageName);
-			using (var stream = new FileStream(tempImagePath, FileMode.Create))
+			var logoImageResponse = await AddImageAsync(companyCreateDto.Logo);
+			if (logoImageResponse.Data is null)
 			{
-				await companyCreateDto.Logo.CopyToAsync(stream);
+				return new BaseResponse<CompanyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"{logoImageResponse.Message}.",
+					Data = null
+				};
 			}
-			var response = await _imageKitService.AddImageAsync(tempImagePath, imageName);
-			File.Delete(tempImagePath);
+			var posterImageResponse = new BaseResponse<string>();
+			if (companyCreateDto.Poster is not null)
+			{
+				posterImageResponse = await AddImageAsync(companyCreateDto.Poster);
+				if (posterImageResponse.Data is null)
+				{
+					return new BaseResponse<CompanyGetDto>
+					{
+						StatusCode = HttpStatusCode.BadRequest,
+						Message = $"{posterImageResponse.Message}.",
+						Data = null
+					};
+				}
+			}
 			var createdCompany = _mapper.Map<Company>(companyCreateDto);
+			createdCompany.LogoPath = logoImageResponse.Data;
+			createdCompany.PosterPath = companyCreateDto.Poster is null ? null : posterImageResponse.Data;
+			createdCompany.CreatedDate = DateTime.UtcNow;
 			await _companyRepository.AddAsync(createdCompany);
 			await _companyRepository.SaveChangesAsync();
 			var companyGetDto = _mapper.Map<CompanyGetDto>(createdCompany);
@@ -82,6 +102,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				Message = "The company is successfully created.",
 				Data = companyGetDto
 			};
+
 		}
 
 		public async Task<BaseResponse<object>> DeleteAsync(Guid id)
@@ -97,6 +118,21 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			company.IsDeleted = true;
+			var logoImageResponse = await _imageKitService.GetImageId(company.LogoPath);
+			if(logoImageResponse.Data is null)
+			{
+				return new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"{logoImageResponse.Message}",
+					Data = null
+				};
+			}
+			var deleteResponse = await _imageKitService.DeleteImageAsync(logoImageResponse.Data);
+			if((int)deleteResponse.StatusCode != 200)
+			{
+				return deleteResponse;
+			}
 			await _companyRepository.SaveChangesAsync();
 			return new BaseResponse<object>
 			{
@@ -313,6 +349,17 @@ namespace GlorriJob.Persistence.Implementations.Services
 				Message = "The company is successfully updated",
 				Data = companyGetDto
 			};
+		}
+
+		private async Task<BaseResponse<string>> AddImageAsync(IFormFile file)
+		{
+			string tempImagePath = Path.Combine(Path.GetTempPath(), file.FileName);
+			using (var stream = new FileStream(tempImagePath, FileMode.Create))
+			{
+					await file.CopyToAsync(stream);
+			}
+			var response = await _imageKitService.AddImageAsync(tempImagePath, file.FileName);
+			return response;	
 		}
 	}
 }

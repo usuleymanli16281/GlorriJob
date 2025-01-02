@@ -1,5 +1,7 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Common.Shared;
+using Imagekit;
+using Imagekit.Models;
 using Imagekit.Sdk;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -13,9 +15,9 @@ namespace GlorriJob.Infrastructure.Services
 {
 	public class ImageKitService : IImageKitService
 	{
-		private ImagekitClient _imagekit {  get; }
-        public ImageKitService(IConfiguration configuration)
-        {
+		private ImagekitClient _imagekit { get; }
+		public ImageKitService(IConfiguration configuration)
+		{
 			var publicKey = configuration["ImageKitSettings:PublicKey"];
 			var privateKey = configuration["ImageKitSettings:PrivateKey"];
 			var urlEndpoint = configuration["ImageKitSettings:UrlEndpoint"];
@@ -24,7 +26,7 @@ namespace GlorriJob.Infrastructure.Services
 
 		public async Task<BaseResponse<string>> AddImageAsync(string imagePath, string imageName)
 		{
-			if(!File.Exists(imagePath))
+			if (!File.Exists(imagePath))
 			{
 				return new BaseResponse<string>
 				{
@@ -42,7 +44,7 @@ namespace GlorriJob.Infrastructure.Services
 				useUniqueFileName = true
 			};
 			var uploadResult = await _imagekit.UploadAsync(fileCreateRequest);
-			if(uploadResult.HttpStatusCode != 200)
+			if (uploadResult.HttpStatusCode != 200)
 			{
 				return new BaseResponse<string>
 				{
@@ -62,6 +64,49 @@ namespace GlorriJob.Infrastructure.Services
 		public Task<string> UpdateImageAsync(string imagePath, string imageName)
 		{
 			throw new NotImplementedException();
+		}
+		public async Task<BaseResponse<object>> DeleteImageAsync(string imageId)
+		{
+			var response = await _imagekit.DeleteFileAsync(imageId);
+			if (response.HttpStatusCode != 200)
+			{
+				return new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = "Error occurred while deleting image.",
+					Data = null
+				};
+			}
+			return new BaseResponse<object>
+			{
+				StatusCode = HttpStatusCode.OK,
+				Message = $"Image is successfully deleted.",
+				Data = null
+			};
+		}
+		public async Task<BaseResponse<string>> GetImageId(string imagePath)
+		{
+			string fileName = imagePath.Substring(imagePath.LastIndexOf('/') + 1).Split(".")[0];
+			var fileListResponse = await _imagekit.GetFileListRequestAsync(new GetFileListRequest
+			{
+				Name = fileName
+			});
+			var file = fileListResponse.FileList.FirstOrDefault();
+			if(file is null)
+			{
+				return new BaseResponse<string>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = "File does not exist.",
+					Data = null
+				};
+			}
+			return new BaseResponse<string>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "File Id is successfully retrieved.",
+				Data = file.fileId
+			};
 		}
 	}
 }
