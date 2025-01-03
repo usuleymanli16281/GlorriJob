@@ -39,7 +39,9 @@ namespace GlorriJob.Application.Validations.Company
 
 			RuleFor(x => x.FoundedYear)
 				.LessThanOrEqualTo(DateTime.Now.Year)
-				.WithMessage("Founded year should be less than current year");
+				.WithMessage("Founded year should be less than current year")
+				.GreaterThanOrEqualTo(1980)
+				.WithMessage("Founded year should be equal or greater than 1980");
 
 		}
 		private bool ValidateImage(IFormFile file)

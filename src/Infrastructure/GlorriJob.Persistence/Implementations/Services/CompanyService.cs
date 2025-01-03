@@ -23,14 +23,14 @@ namespace GlorriJob.Persistence.Implementations.Services
 		private IIndustryService _industryService { get; }
 		private IImageKitService _imageKitService { get; }
 		private IMapper _mapper { get; }
-        public CompanyService(ICompanyRepository companyRepository, IMapper mapper, IIndustryService industryService, IImageKitService imageKitService)
-        {
-            _companyRepository = companyRepository;
+		public CompanyService(ICompanyRepository companyRepository, IMapper mapper, IIndustryService industryService, IImageKitService imageKitService)
+		{
+			_companyRepository = companyRepository;
 			_industryService = industryService;
 			_mapper = mapper;
 			_imageKitService = imageKitService;
-        }
-        public async Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto companyCreateDto)
+		}
+		public async Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto companyCreateDto)
 		{
 			var validation = new CompanyCreateValidator();
 			var validationResult = await validation.ValidateAsync(companyCreateDto);
@@ -65,33 +65,33 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			var logoImageResponse = await AddImageAsync(companyCreateDto.Logo);
-			if (logoImageResponse.Data is null)
+			var logoPath = await UploadImageAsync(companyCreateDto.Logo);
+			if (logoPath is null)
 			{
 				return new BaseResponse<CompanyGetDto>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"{logoImageResponse.Message}.",
+					Message = $"Error occured while uploading a logo image.",
 					Data = null
 				};
 			}
-			var posterImageResponse = new BaseResponse<string>();
+			string? posterPath = string.Empty;
 			if (companyCreateDto.Poster is not null)
 			{
-				posterImageResponse = await AddImageAsync(companyCreateDto.Poster);
-				if (posterImageResponse.Data is null)
+				posterPath = await UploadImageAsync(companyCreateDto.Poster);
+				if (posterPath is null)
 				{
 					return new BaseResponse<CompanyGetDto>
 					{
 						StatusCode = HttpStatusCode.BadRequest,
-						Message = $"{posterImageResponse.Message}.",
+						Message = $"Error occured while uploading a poster image.",
 						Data = null
 					};
 				}
 			}
 			var createdCompany = _mapper.Map<Company>(companyCreateDto);
-			createdCompany.LogoPath = logoImageResponse.Data;
-			createdCompany.PosterPath = companyCreateDto.Poster is null ? null : posterImageResponse.Data;
+			createdCompany.LogoPath = logoPath;
+			createdCompany.PosterPath = companyCreateDto.Poster is null ? null : posterPath;
 			createdCompany.CreatedDate = DateTime.UtcNow;
 			await _companyRepository.AddAsync(createdCompany);
 			await _companyRepository.SaveChangesAsync();
@@ -108,7 +108,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 		public async Task<BaseResponse<object>> DeleteAsync(Guid id)
 		{
 			var company = await _companyRepository.GetByIdAsync(id);
-			if(company is null || company.IsDeleted)
+			if (company is null || company.IsDeleted)
 			{
 				return new BaseResponse<object>
 				{
@@ -118,20 +118,48 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			company.IsDeleted = true;
-			var logoImageResponse = await _imageKitService.GetImageId(company.LogoPath);
-			if(logoImageResponse.Data is null)
+			var logoImageId = await _imageKitService.GetImageId(company.LogoPath);
+			if (logoImageId is null)
 			{
 				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"{logoImageResponse.Message}",
+					Message = $"Logo Image Path does not exist",
 					Data = null
 				};
 			}
-			var deleteResponse = await _imageKitService.DeleteImageAsync(logoImageResponse.Data);
-			if((int)deleteResponse.StatusCode != 200)
+			var isLogoImageDeleted = await _imageKitService.DeleteImageAsync(logoImageId);
+			if (isLogoImageDeleted == false)
 			{
-				return deleteResponse;
+				return new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Error occured while deleting a logo image",
+					Data = null
+				};
+			}
+			if (company.PosterPath is not null)
+			{
+				var posterImageId = await _imageKitService.GetImageId(company.PosterPath);
+				if (posterImageId is null)
+				{
+					return new BaseResponse<object>
+					{
+						StatusCode = HttpStatusCode.BadRequest,
+						Message = $"Poster Image Path does not exist",
+						Data = null
+					};
+				}
+				var isPosterImageDeleted = await _imageKitService.DeleteImageAsync(logoImageId);
+				if (isPosterImageDeleted == false)
+				{
+					return new BaseResponse<object>
+					{
+						StatusCode = HttpStatusCode.BadRequest,
+						Message = $"Error occured while deleting a poster image",
+						Data = null
+					};
+				}
 			}
 			await _companyRepository.SaveChangesAsync();
 			return new BaseResponse<object>
@@ -144,7 +172,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 
 		public async Task<BaseResponse<Pagination<CompanyGetDto>>> GetAllAsync(int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
 		{
-			if(pageNumber < 1 || pageSize < 1)
+			if (pageNumber < 1 || pageSize < 1)
 			{
 				return new BaseResponse<Pagination<CompanyGetDto>>
 				{
@@ -154,7 +182,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			IQueryable<Company> query = _companyRepository.GetAll(
-				expression: c => !c.IsDeleted , 
+				expression: c => !c.IsDeleted,
 				includes: new[] { "Industry", "Departments" });
 
 			int totalItems = await query.CountAsync();
@@ -203,7 +231,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 		{
 			var company = await _companyRepository.GetByFilter(
 				expression: c => c.Id == id && !c.IsDeleted,
-				includes: new[] {"Industry","Departments"});
+				includes: new[] { "Industry", "Departments" });
 			if (company is null)
 			{
 				return new BaseResponse<CompanyGetDto>
@@ -234,7 +262,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			}
 			IQueryable<Company> query = _companyRepository.GetAll(
 				expression: c => !c.IsDeleted &&
-				c.Name.ToLower().Contains(name.ToLower()), 
+				c.Name.ToLower().Contains(name.ToLower()),
 				includes: new[] { "Industry", "Departments" });
 
 			int totalItems = await query.CountAsync();
@@ -281,7 +309,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 
 		public async Task<BaseResponse<CompanyGetDto>> UpdateAsync(Guid id, CompanyUpdateDto companyUpdateDto)
 		{
-			if(companyUpdateDto.Id != id)
+			if (companyUpdateDto.Id != id)
 			{
 				return new BaseResponse<CompanyGetDto>
 				{
@@ -314,8 +342,8 @@ namespace GlorriJob.Persistence.Implementations.Services
 			var existedCompany = await _companyRepository.GetByFilter(c =>
 			c.Name.ToLower().Contains(companyUpdateDto.Name.ToLower()) &&
 			!c.IsDeleted);
-			
-			if(existedCompany is not null)
+
+			if (existedCompany is not null)
 			{
 				return new BaseResponse<CompanyGetDto>
 				{
@@ -330,18 +358,43 @@ namespace GlorriJob.Persistence.Implementations.Services
 				return new BaseResponse<CompanyGetDto>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"The IndustryId does not exist.",
+					Message = $"{industryResponse.Message}.",
 					Data = null
 				};
+			}
+			string? newLogoPath = await UploadImageAsync(companyUpdateDto.Logo);
+			if (newLogoPath is null)
+			{
+				return new BaseResponse<CompanyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Error occured while uploading a logo image.",
+					Data = null
+				};
+			}
+			string? newPosterPath = string.Empty;
+			if (companyUpdateDto.Poster is not null)
+			{
+				newPosterPath = await UploadImageAsync(companyUpdateDto.Poster);
+				if (newPosterPath is null)
+				{
+					return new BaseResponse<CompanyGetDto>
+					{
+						StatusCode = HttpStatusCode.BadRequest,
+						Message = $"Error occured while uploading a poster image.",
+						Data = null
+					};
+				}
 			}
 			company.Name = companyUpdateDto.Name;
 			company.EmployeeCount = companyUpdateDto.EmployeeCount;
 			company.FoundedYear = companyUpdateDto.FoundedYear;
-			company.LogoPath = companyUpdateDto.LogoPath;
-			company.PosterPath = companyUpdateDto.PosterPath;
+			company.LogoPath = newLogoPath;
+			//continue
+			company.PosterPath = string.Empty;
 			company.IndustryId = companyUpdateDto.IndustryId;
 
-			await _companyRepository.SaveChangesAsync();	
+			await _companyRepository.SaveChangesAsync();
 			var companyGetDto = _mapper.Map<CompanyGetDto>(company);
 			return new BaseResponse<CompanyGetDto>
 			{
@@ -351,15 +404,15 @@ namespace GlorriJob.Persistence.Implementations.Services
 			};
 		}
 
-		private async Task<BaseResponse<string>> AddImageAsync(IFormFile file)
+		private async Task<string?> UploadImageAsync(IFormFile file)
 		{
 			string tempImagePath = Path.Combine(Path.GetTempPath(), file.FileName);
 			using (var stream = new FileStream(tempImagePath, FileMode.Create))
 			{
-					await file.CopyToAsync(stream);
+				await file.CopyToAsync(stream);
 			}
-			var response = await _imageKitService.AddImageAsync(tempImagePath, file.FileName);
-			return response;	
+			var imagePath = await _imageKitService.AddImageAsync(tempImagePath, file.FileName);
+			return imagePath;
 		}
 	}
 }

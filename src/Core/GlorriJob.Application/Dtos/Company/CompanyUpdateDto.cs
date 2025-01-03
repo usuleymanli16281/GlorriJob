@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,8 +13,8 @@ namespace GlorriJob.Application.Dtos.Company
 		public required string Name { get; set; }
 		public int EmployeeCount { get; set; }
 		public int FoundedYear { get; set; }
-		public string? PosterPath { get; set; }
-		public required string LogoPath { get; set; }
+		public IFormFile? Poster { get; set; }
+		public required IFormFile Logo { get; set; }
 		public Guid IndustryId {  get; set; }
 	}
 }
