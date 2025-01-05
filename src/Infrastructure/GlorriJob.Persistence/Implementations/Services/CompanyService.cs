@@ -27,8 +27,8 @@ namespace GlorriJob.Persistence.Implementations.Services
 		{
 			_companyRepository = companyRepository;
 			_industryService = industryService;
-			_mapper = mapper;
 			_imageKitService = imageKitService;
+			_mapper = mapper;
 		}
 		public async Task<BaseResponse<CompanyGetDto>> CreateAsync(CompanyCreateDto companyCreateDto)
 		{
@@ -150,7 +150,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 						Data = null
 					};
 				}
-				var isPosterImageDeleted = await _imageKitService.DeleteImageAsync(logoImageId);
+				var isPosterImageDeleted = await _imageKitService.DeleteImageAsync(posterImageId);
 				if (isPosterImageDeleted == false)
 				{
 					return new BaseResponse<object>
@@ -372,7 +372,27 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			string? newPosterPath = string.Empty;
+			var previousLogoImageId = await _imageKitService.GetImageId(company.LogoPath);
+			if (previousLogoImageId is null)
+			{
+				return new BaseResponse<CompanyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Previous Logo Image Path does not exist",
+					Data = null
+				};
+			}
+			var isPreviousLogoImageDeleted = await _imageKitService.DeleteImageAsync(previousLogoImageId);
+			if (isPreviousLogoImageDeleted == false)
+			{
+				return new BaseResponse<CompanyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Error occured while deleting a previous logo image",
+					Data = null
+				};
+			}
+			string? newPosterPath = company.PosterPath;
 			if (companyUpdateDto.Poster is not null)
 			{
 				newPosterPath = await UploadImageAsync(companyUpdateDto.Poster);
@@ -385,13 +405,32 @@ namespace GlorriJob.Persistence.Implementations.Services
 						Data = null
 					};
 				}
+				var previousPosterImageId = await _imageKitService.GetImageId(company.LogoPath);
+				if (previousPosterImageId is null)
+				{
+					return new BaseResponse<CompanyGetDto>
+					{
+						StatusCode = HttpStatusCode.BadRequest,
+						Message = $"Previous Logo Image Path does not exist",
+						Data = null
+					};
+				}
+				var isPreviousPosterImageDeleted = await _imageKitService.DeleteImageAsync(previousLogoImageId);
+				if (isPreviousPosterImageDeleted == false)
+				{
+					return new BaseResponse<CompanyGetDto>
+					{
+						StatusCode = HttpStatusCode.BadRequest,
+						Message = $"Error occured while deleting a previous logo image",
+						Data = null
+					};
+				}
 			}
 			company.Name = companyUpdateDto.Name;
 			company.EmployeeCount = companyUpdateDto.EmployeeCount;
 			company.FoundedYear = companyUpdateDto.FoundedYear;
 			company.LogoPath = newLogoPath;
-			//continue
-			company.PosterPath = string.Empty;
+			company.PosterPath = newPosterPath;
 			company.IndustryId = companyUpdateDto.IndustryId;
 
 			await _companyRepository.SaveChangesAsync();
