@@ -340,7 +340,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			var existedCompany = await _companyRepository.GetByFilter(c =>
-			c.Name.ToLower().Contains(companyUpdateDto.Name.ToLower()) &&
+			(company.Name != companyUpdateDto.Name && c.Name.ToLower() == companyUpdateDto.Name.ToLower()) &&
 			!c.IsDeleted);
 
 			if (existedCompany is not null)
@@ -378,7 +378,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				return new BaseResponse<CompanyGetDto>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"Previous Logo Image Path does not exist",
+					Message = $"Previous logo image does not exist",
 					Data = null
 				};
 			}
@@ -405,25 +405,29 @@ namespace GlorriJob.Persistence.Implementations.Services
 						Data = null
 					};
 				}
-				var previousPosterImageId = await _imageKitService.GetImageId(company.LogoPath);
-				if (previousPosterImageId is null)
+				if (company.PosterPath is not null)
 				{
-					return new BaseResponse<CompanyGetDto>
+
+					var previousPosterImageId = await _imageKitService.GetImageId(company.PosterPath);
+					if (previousPosterImageId is null)
 					{
-						StatusCode = HttpStatusCode.BadRequest,
-						Message = $"Previous Logo Image Path does not exist",
-						Data = null
-					};
-				}
-				var isPreviousPosterImageDeleted = await _imageKitService.DeleteImageAsync(previousLogoImageId);
-				if (isPreviousPosterImageDeleted == false)
-				{
-					return new BaseResponse<CompanyGetDto>
+						return new BaseResponse<CompanyGetDto>
+						{
+							StatusCode = HttpStatusCode.BadRequest,
+							Message = $"Previous poster image does not exist",
+							Data = null
+						};
+					}
+					var isPreviousPosterImageDeleted = await _imageKitService.DeleteImageAsync(previousPosterImageId);
+					if (isPreviousPosterImageDeleted == false)
 					{
-						StatusCode = HttpStatusCode.BadRequest,
-						Message = $"Error occured while deleting a previous logo image",
-						Data = null
-					};
+						return new BaseResponse<CompanyGetDto>
+						{
+							StatusCode = HttpStatusCode.BadRequest,
+							Message = $"Error occured while deleting a previous logo image",
+							Data = null
+						};
+					}
 				}
 			}
 			company.Name = companyUpdateDto.Name;
@@ -432,7 +436,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			company.LogoPath = newLogoPath;
 			company.PosterPath = newPosterPath;
 			company.IndustryId = companyUpdateDto.IndustryId;
-
+			company.ModifiedDate = DateTime.UtcNow;
 			await _companyRepository.SaveChangesAsync();
 			var companyGetDto = _mapper.Map<CompanyGetDto>(company);
 			return new BaseResponse<CompanyGetDto>
