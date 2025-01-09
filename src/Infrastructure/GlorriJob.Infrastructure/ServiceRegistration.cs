@@ -1,4 +1,5 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
+using GlorriJob.Infrastructure.Services;
 using GlorriJob.Persistence.Implementations.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +33,7 @@ public static class ServiceRegistrationExtension
             };
         });
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IImageKitService, ImageKitService>();
         return services;
     }
 };
