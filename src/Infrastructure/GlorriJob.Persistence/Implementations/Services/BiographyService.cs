@@ -17,6 +17,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GlorriJob.Persistence.Implementations.Services
 {
@@ -184,7 +185,71 @@ namespace GlorriJob.Persistence.Implementations.Services
 
 		public async Task<BaseResponse<BiographyGetDto>> UpdateAsync(Guid id, BiographyUpdateDto biographyUpdateDto)
 		{
-			throw new NotImplementedException();
+			var biography = await _biographyRepository.GetByIdAsync(id);
+			if (biography is null || biography.IsDeleted)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = "The biography does not exist.",
+					Data = null
+				};
+			}
+			var existedBiography = await _biographyRepository.GetByFilter(b =>
+			biography.Key != biographyUpdateDto.Key && 
+			b.Key.ToLower() == biographyUpdateDto.Key.ToLower() &&
+			!b.IsDeleted);
+
+			if (existedBiography is not null)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"A biography with the key '{biographyUpdateDto.Key}' already exists.",
+					Data = null
+				};
+			}
+			string? newIconPath = biographyUpdateDto.Icon is not null ? await UploadImageAsync(biographyUpdateDto.Icon) : null;
+			if (newIconPath is null)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Error occured while uploading an icon.",
+					Data = null
+				};
+			}
+			var previousLogoImageId = biography.Icon is not null ? await _imageKitService.GetImageId(biography.Icon) : null;
+			if (previousLogoImageId is null)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Previous icon does not exist",
+					Data = null
+				};
+			}
+			var isPreviousLogoImageDeleted = await _imageKitService.DeleteImageAsync(previousLogoImageId);
+			if (isPreviousLogoImageDeleted == false)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Error occured while deleting a previous icon",
+					Data = null
+				};
+			}
+			biography.Key = biographyUpdateDto.Key;
+			biography.Value = biographyUpdateDto.Value;
+			biography.Icon = newIconPath;
+			await _biographyRepository.SaveChangesAsync();
+			var biographyGetDto = _mapper.Map<BiographyGetDto>(biography);
+			return new BaseResponse<BiographyGetDto>
+			{
+				StatusCode = HttpStatusCode.OK,
+				Message = "The biography is successfully updated",
+				Data = biographyGetDto
+			};
 		}
 		private async Task<string?> UploadImageAsync(IFormFile file)
 		{
