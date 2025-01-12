@@ -83,29 +83,27 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			biography.IsDeleted = true;
-			if (biography.Icon is not null)
+			var iconId = biography.Icon is not null ? await _imageKitService.GetImageId(biography.Icon) : null;
+			if (biography.Icon is not null && iconId is null)
 			{
-				var iconId = await _imageKitService.GetImageId(biography.Icon);
-				if (iconId is null)
+				return new BaseResponse<object>
 				{
-					return new BaseResponse<object>
-					{
-						StatusCode = HttpStatusCode.BadRequest,
-						Message = $"Icon does not exist",
-						Data = null
-					};
-				}
-				var isIconDeleted = await _imageKitService.DeleteImageAsync(iconId);
-				if (isIconDeleted == false)
-				{
-					return new BaseResponse<object>
-					{
-						StatusCode = HttpStatusCode.BadRequest,
-						Message = $"Error occured while deleting an icon",
-						Data = null
-					};
-				}
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Icon does not exist",
+					Data = null
+				};
 			}
+			var isIconDeleted = iconId is not null ? await _imageKitService.DeleteImageAsync(iconId) : true;
+			if (isIconDeleted == false)
+			{
+				return new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"Error occured while deleting an icon",
+					Data = null
+				};
+			}
+
 			await _biographyRepository.SaveChangesAsync();
 			return new BaseResponse<object>
 			{
@@ -177,14 +175,17 @@ namespace GlorriJob.Persistence.Implementations.Services
 				Data = _mapper.Map<BiographyGetDto>(biography)
 			};
 		}
-
-		public Task<BaseResponse<Pagination<BiographyGetDto>>> SearchByKeyAsync(string key, int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
-		{
-			throw new NotImplementedException();
-		}
-
 		public async Task<BaseResponse<BiographyGetDto>> UpdateAsync(Guid id, BiographyUpdateDto biographyUpdateDto)
 		{
+			if (biographyUpdateDto.Id != id)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = "Id does not match with the route parameter.",
+					Data = null
+				};
+			}
 			var biography = await _biographyRepository.GetByIdAsync(id);
 			if (biography is null || biography.IsDeleted)
 			{
@@ -196,7 +197,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			var existedBiography = await _biographyRepository.GetByFilter(b =>
-			biography.Key != biographyUpdateDto.Key && 
+			biography.Key != biographyUpdateDto.Key &&
 			b.Key.ToLower() == biographyUpdateDto.Key.ToLower() &&
 			!b.IsDeleted);
 
@@ -210,7 +211,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			string? newIconPath = biographyUpdateDto.Icon is not null ? await UploadImageAsync(biographyUpdateDto.Icon) : null;
-			if (newIconPath is null)
+			if (biographyUpdateDto.Icon is not null && newIconPath is null)
 			{
 				return new BaseResponse<BiographyGetDto>
 				{
@@ -220,16 +221,16 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 			var previousLogoImageId = biography.Icon is not null ? await _imageKitService.GetImageId(biography.Icon) : null;
-			if (previousLogoImageId is null)
+			if (biography.Icon is not null && previousLogoImageId is null)
 			{
 				return new BaseResponse<BiographyGetDto>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"Previous icon does not exist",
+					Message = $"Error occured while deleting a previous icon.",
 					Data = null
 				};
 			}
-			var isPreviousLogoImageDeleted = await _imageKitService.DeleteImageAsync(previousLogoImageId);
+			var isPreviousLogoImageDeleted = previousLogoImageId is not null ? await _imageKitService.DeleteImageAsync(previousLogoImageId) : true;
 			if (isPreviousLogoImageDeleted == false)
 			{
 				return new BaseResponse<BiographyGetDto>

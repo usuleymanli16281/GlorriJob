@@ -14,7 +14,6 @@ namespace GlorriJob.Application.Abstractions.Services
 	{
 		Task<BaseResponse<BiographyGetDto>> GetByIdAsync(Guid id);
 		Task<BaseResponse<Pagination<BiographyGetDto>>> GetAllAsync(int pageNumber = 1, int pageSize = 10, bool isPaginated = false);
-		Task<BaseResponse<Pagination<BiographyGetDto>>> SearchByKeyAsync(string key, int pageNumber = 1, int pageSize = 10, bool isPaginated = false);
 		Task<BaseResponse<BiographyGetDto>> CreateAsync(BiographyCreateDto biographyCreateDto);
 		Task<BaseResponse<BiographyGetDto>> UpdateAsync(Guid id, BiographyUpdateDto biographyUpdateDto);
 		Task<BaseResponse<object>> DeleteAsync(Guid id);
