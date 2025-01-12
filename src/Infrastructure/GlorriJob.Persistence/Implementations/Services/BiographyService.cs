@@ -27,12 +27,14 @@ namespace GlorriJob.Persistence.Implementations.Services
 	{
 		private IBiographyRepository _biographyRepository { get; }
 		private IImageKitService _imageKitService { get; }
+		private ICompanyService _companyService { get; }
 		private IMapper _mapper { get; }
-		public BiographyService(IBiographyRepository biographyRepository, IImageKitService imageKitService, IMapper mapper)
+		public BiographyService(IBiographyRepository biographyRepository, IImageKitService imageKitService, IMapper mapper, ICompanyService companyService)
 		{
 			_biographyRepository = biographyRepository;
 			_imageKitService = imageKitService;
 			_mapper = mapper;
+			_companyService = companyService;
 		}
 		public async Task<BaseResponse<BiographyGetDto>> CreateAsync(BiographyCreateDto biographyCreateDto)
 		{
@@ -56,6 +58,16 @@ namespace GlorriJob.Persistence.Implementations.Services
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = $"A biography with the key '{biographyCreateDto.Key}' already exists.",
+					Data = null
+				};
+			}
+			var companyGetDto = (await _companyService.GetByIdAsync(biographyCreateDto.CompanyId)).Data;
+			if(companyGetDto is null)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"This company Id does not exist.",
 					Data = null
 				};
 			}
@@ -137,8 +149,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Data = null
 				};
 			}
-			IQueryable<Biography> query = _biographyRepository.GetAll(
-				expression: b => !b.IsDeleted);
+			IQueryable<Biography> query = _biographyRepository.GetAll(b => !b.IsDeleted);
 
 			int totalItems = await query.CountAsync();
 			if (isPaginated)
@@ -156,7 +167,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			return new BaseResponse<Pagination<BiographyGetDto>>
 			{
 				StatusCode = HttpStatusCode.OK,
-				Message = "The companies are successfully retrieved.",
+				Message = "The biographies are successfully retrieved.",
 				Data = new Pagination<BiographyGetDto>
 				{
 					Items = biographyGetDtos,
@@ -170,8 +181,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 
 		public async Task<BaseResponse<BiographyGetDto>> GetByIdAsync(Guid id)
 		{
-			var biography = await _biographyRepository.GetByFilter(
-				expression: b => b.Id == id && !b.IsDeleted);
+			var biography = await _biographyRepository.GetByFilter(b => b.Id == id && !b.IsDeleted);
 			if (biography is null)
 			{
 				return new BaseResponse<BiographyGetDto>
@@ -231,6 +241,16 @@ namespace GlorriJob.Persistence.Implementations.Services
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = $"A biography with the key '{biographyUpdateDto.Key}' already exists.",
+					Data = null
+				};
+			}
+			var companyGetDto = (await _companyService.GetByIdAsync(biographyUpdateDto.CompanyId)).Data;
+			if (companyGetDto is null)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"This company Id does not exist.",
 					Data = null
 				};
 			}
