@@ -5,6 +5,8 @@ using GlorriJob.Application.Dtos.Biography;
 using GlorriJob.Application.Dtos.Company;
 using GlorriJob.Application.Dtos.Department;
 using GlorriJob.Application.Dtos.Industry;
+using GlorriJob.Application.Validations.Biography;
+using GlorriJob.Application.Validations.Company;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Domain.Shared;
@@ -34,6 +36,17 @@ namespace GlorriJob.Persistence.Implementations.Services
 		}
 		public async Task<BaseResponse<BiographyGetDto>> CreateAsync(BiographyCreateDto biographyCreateDto)
 		{
+			var validation = new BiographyCreateValidator();
+			var validationResult = await validation.ValidateAsync(biographyCreateDto);
+			if (!validationResult.IsValid)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
+					Data = null
+				};
+			}
 			var existedBiography = await _biographyRepository.GetByFilter(b =>
 			b.Key.ToLower() == biographyCreateDto.Key.ToLower() &&
 			!b.IsDeleted);
@@ -183,6 +196,17 @@ namespace GlorriJob.Persistence.Implementations.Services
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = "Id does not match with the route parameter.",
+					Data = null
+				};
+			}
+			var validator = new BiographyUpdateValidator();
+			var validationResult = await validator.ValidateAsync(biographyUpdateDto);
+			if (!validationResult.IsValid)
+			{
+				return new BaseResponse<BiographyGetDto>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
 					Data = null
 				};
 			}
