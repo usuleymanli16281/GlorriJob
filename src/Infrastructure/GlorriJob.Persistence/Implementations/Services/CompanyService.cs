@@ -231,7 +231,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 		{
 			var company = await _companyRepository.GetByFilter(
 				expression: c => c.Id == id && !c.IsDeleted,
-				includes: new[] { "Industry", "Departments" });
+				includes: ["Industry", "Departments"]);
 			if (company is null)
 			{
 				return new BaseResponse<CompanyGetDto>
