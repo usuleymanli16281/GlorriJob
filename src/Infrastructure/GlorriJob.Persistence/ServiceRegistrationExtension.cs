@@ -7,6 +7,8 @@ using GlorriJob.Domain.Entities;
 using GlorriJob.Persistence.Contexts;
 using GlorriJob.Persistence.Implementations.Repositories;
 using GlorriJob.Persistence.Implementations.Services;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,7 +32,21 @@ public static class ServiceRegistrationExtension
         .AddRoles<Role>()
         .AddEntityFrameworkStores<GlorriJobDbContext>();
 
-        services.AddScoped<ICityRepository, CityRepository>();
+
+		services.AddHangfire(config =>
+		{
+			config.UsePostgreSqlStorage(options =>
+			{
+				options.UseNpgsqlConnection(configuration.GetConnectionString("Default"));
+			},
+			new PostgreSqlStorageOptions
+			{
+				SchemaName = "hangfire"
+			});
+		});
+		services.AddHangfireServer();
+
+		services.AddScoped<ICityRepository, CityRepository>();
         services.AddScoped<ICityService, CityService>();
 
         services.AddScoped<IDepartmentRepository, DepartmentRepository>();

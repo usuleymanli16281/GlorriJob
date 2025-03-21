@@ -12,8 +12,10 @@
 
   <ItemGroup>
     <PackageReference Include="Imagekit" Version="5.0.0" />
+    <PackageReference Include="MailKit" Version="4.9.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.3.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.22" />
   </ItemGroup>
 
   <ItemGroup>

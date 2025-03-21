@@ -7,6 +7,7 @@ using GlorriJob.Application.Validations.Identity;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Persistence.Contexts;
+using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -23,15 +24,21 @@ public class AuthService : IAuthService
 	private UserManager<User> _userManager { get; }
 	private IMapper _mapper { get; }
 	private IConfiguration _configuration { get; }
+	private IOtpCacheService _cacheService { get; }
+	private IEmailService _emailService { get; }
 	public AuthService(IJwtService jwtService,
 		UserManager<User> userManager,
 		IMapper mapper,
-		IConfiguration configuration)
+		IConfiguration configuration,
+		IOtpCacheService cacheService,
+		IEmailService emailService)
 	{
 		_jwtService = jwtService;
 		_userManager = userManager;
 		_mapper = mapper;
 		_configuration = configuration;
+		_cacheService = cacheService;
+		_emailService = emailService;
 	}
 	public async Task<BaseResponse<object>> RefreshToken(string refreshtoken)
 	{
@@ -95,19 +102,13 @@ public class AuthService : IAuthService
 				Data = null
 			};
 		}
-		User? user = await _userManager.FindByEmailAsync(loginDto.Email);
-		var checkedPassword = false;
-		if (user is not null)
-		{
-			checkedPassword = await _userManager.CheckPasswordAsync(user, loginDto.Password);
-		}
-		if (user is null || !checkedPassword)
+		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.EmailConfirmed && u.PhoneNumber == loginDto.Email);
+		if (user is null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
 		{
 			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "Email or password is wrong.",
-				Data = null
+				Message = "Invalid email or password."
 			};
 		}
 		var claims = new[]
@@ -148,18 +149,16 @@ public class AuthService : IAuthService
 			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage)),
-				Data = null
+				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage))
 			};
 		}
-		var registeredUser = await _userManager.FindByNameAsync(registerDto.Email);
+		var registeredUser = await _userManager.FindByEmailAsync(registerDto.Email);
 		if (registeredUser is not null)
 		{
 			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "This email already registered.",
-				Data = null
+				Message = "This email already registered."
 			};
 		}
 		User user = _mapper.Map<User>(registerDto);
@@ -171,39 +170,70 @@ public class AuthService : IAuthService
 			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = string.Join("; ", result.Errors.Select(e => e.Description)),
-				Data = null
+				Message = string.Join("; ", result.Errors.Select(e => e.Description))
 			};
 		}
+		var otp = new Random().Next(100000, 999999).ToString();
+		await _cacheService.SetOtpAsync(registerDto.Email, otp);
+		await _emailService.SendEmailAsync(registerDto.Email, "User Verification", otp);
+		BackgroundJob.Schedule(() => DeleteUnconfirmedUserAsync(user.Id.ToString()), TimeSpan.FromMinutes(15));
+		return new BaseResponse<object>
+		{
+			Data = otp,
+			Message = "User registered successfully. Otp has been sent",
+			StatusCode = HttpStatusCode.Created,
+		};
+	}
+	public async Task<BaseResponse<object>> VerifyUserAsync(VerifyUserDto verifyUserDto)
+	{
+		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == verifyUserDto.Email);
+		if (user is null)
+		{
+			return new BaseResponse<object>
+			{
+				StatusCode = HttpStatusCode.NotFound,
+				Message = "User is not found."
+			};
+		}
+
+		if (user.EmailConfirmed)
+		{
+			return new BaseResponse<object>
+			{
+				StatusCode = HttpStatusCode.Conflict,
+				Message = "User is already verified."
+			};
+		}
+
+		var cachedOtp = await _cacheService.GetOtpAsync(verifyUserDto.Email);
+		if (cachedOtp is null || cachedOtp != verifyUserDto.Otp)
+		{
+			return new BaseResponse<object>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "Invalid or expired OTP."
+			};
+		}
+
+		user.EmailConfirmed = true;
+		await _userManager.UpdateAsync(user);
+
+		await _cacheService.RemoveOtpAsync(verifyUserDto.Email);
 
 		return new BaseResponse<object>
 		{
-			StatusCode = HttpStatusCode.Created,
-			Message = "User registered successfully.",
-			Data = new { Name = user.Name, Surname = user.Surname, Email = user.Email }
+			StatusCode = HttpStatusCode.NoContent,
+			Message = "Email is  successfully confirmed."
 		};
 	}
 
-	public BaseResponse<string?> GetEmailFromToken(string token)
+	public async Task DeleteUnconfirmedUserAsync(string userId)
 	{
-		var principal = _jwtService.GetPrincipalFromToken(token);
-		if(principal is null)
+		var user = await _userManager.FindByIdAsync(userId);
+		if (user is not null && !user.EmailConfirmed)
 		{
-			new BaseResponse<string?>
-			{
-				StatusCode = HttpStatusCode.BadRequest,
-				Message = "Token is not valid",
-				Data = null
-			};
+			await _userManager.DeleteAsync(user);
 		}
-		string? email = principal!.FindFirstValue(ClaimTypes.Email);
-		
-		return new BaseResponse<string?>
-		{
-			StatusCode = HttpStatusCode.OK,
-			Message = "Email is successfully retrieved",
-			Data = email
-		};
 	}
 }
 

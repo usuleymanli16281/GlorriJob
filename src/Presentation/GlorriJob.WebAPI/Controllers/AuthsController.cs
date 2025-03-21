@@ -37,10 +37,5 @@ public class AuthsController : ControllerBase
         var response = await _authService.RegisterAsync(registerDto);
 		    return StatusCode((int)response.StatusCode, response);
 	}
-    [HttpGet("[action]")]
-    public IActionResult GetEmailFromToken([FromQuery] string token)
-    {
-        var response = _authService.GetEmailFromToken(token);
-        return StatusCode((int)response.StatusCode, response);
-    }
+    
 }

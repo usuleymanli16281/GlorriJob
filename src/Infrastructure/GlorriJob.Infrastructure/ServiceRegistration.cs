@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using System.Text;
 
 namespace GlorriJob.Infrastructure;
@@ -34,6 +35,9 @@ public static class ServiceRegistrationExtension
         });
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IImageKitService, ImageKitService>();
-        return services;
+        services.AddScoped<IOtpCacheService, OtpCacheService>();
+        services.AddScoped<IEmailService,  EmailService>();
+		services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(configuration["RedisSettings:Path"]!));
+		return services;
     }
 };

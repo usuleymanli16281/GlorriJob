@@ -3,6 +3,7 @@ using GlorriJob.Domain.Entities;
 using GlorriJob.Infrastructure;
 using GlorriJob.Persistence;
 using GlorriJob.Persistence.Implementations.Repositories;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,11 +21,12 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
 	app.UseSwaggerUI();
+	app.UseHangfireDashboard("/hangfire");
 }
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.UseHangfireDashboard();
 app.Run();
