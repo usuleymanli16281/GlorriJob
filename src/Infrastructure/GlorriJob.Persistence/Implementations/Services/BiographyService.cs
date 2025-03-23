@@ -27,14 +27,14 @@ namespace GlorriJob.Persistence.Implementations.Services
 	{
 		private IBiographyRepository _biographyRepository { get; }
 		private IImageKitService _imageKitService { get; }
-		private ICompanyService _companyService { get; }
+		private ICompanyRepository _companyRepository { get; }
 		private IMapper _mapper { get; }
-		public BiographyService(IBiographyRepository biographyRepository, IImageKitService imageKitService, IMapper mapper, ICompanyService companyService)
+		public BiographyService(IBiographyRepository biographyRepository, IImageKitService imageKitService, IMapper mapper, ICompanyRepository companyRepository)
 		{
 			_biographyRepository = biographyRepository;
 			_imageKitService = imageKitService;
 			_mapper = mapper;
-			_companyService = companyService;
+			_companyRepository = companyRepository;
 		}
 		public async Task<BaseResponse<BiographyGetDto>> CreateAsync(BiographyCreateDto biographyCreateDto)
 		{
@@ -59,8 +59,8 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Message = $"A biography with the key '{biographyCreateDto.Key}' already exists."
 				};
 			}
-			var companyGetDto = (await _companyService.GetByIdAsync(biographyCreateDto.CompanyId)).Data;
-			if (companyGetDto is null)
+			var company = await _companyRepository.GetByIdAsync(biographyCreateDto.CompanyId);
+			if (company is null)
 			{
 				return new BaseResponse<BiographyGetDto>
 				{
@@ -231,13 +231,13 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Message = $"A biography with the key '{biographyUpdateDto.Key}' already exists."
 				};
 			}
-			var companyGetDto = (await _companyService.GetByIdAsync(biographyUpdateDto.CompanyId)).Data;
-			if (companyGetDto is null)
+			var company = await _companyRepository.GetByIdAsync(biographyUpdateDto.CompanyId);
+			if (company is null)
 			{
 				return new BaseResponse<BiographyGetDto>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"This company Id does not exist."
+					Message = "This company Id does not exist."
 				};
 			}
 			string? newIconPath = biographyUpdateDto.Icon is not null ? await UploadImageAsync(biographyUpdateDto.Icon) : null;
@@ -246,7 +246,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				return new BaseResponse<BiographyGetDto>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"Error occured while uploading an icon.",
+					Message = "Error occured while uploading an icon.",
 					Data = null
 				};
 			}
@@ -257,7 +257,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				return new BaseResponse<BiographyGetDto>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"Error occured while deleting a previous icon",
+					Message = "Error occured while deleting a previous icon",
 					Data = null
 				};
 			}

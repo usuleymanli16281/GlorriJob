@@ -11,7 +11,7 @@ namespace GlorriJob.Infrastructure.Services
 	public class OtpCacheService : IOtpCacheService
 	{
 		private readonly IDatabase _cache;
-		private readonly TimeSpan _expiryTime = TimeSpan.FromMinutes(5);
+		private readonly TimeSpan _expiryTime = TimeSpan.FromMinutes(3);
 
 		public OtpCacheService(IConnectionMultiplexer redis)
 		{

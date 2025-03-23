@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GlorriJob.Persistence.Migrations
 {
     [DbContext(typeof(GlorriJobDbContext))]
-    [Migration("20241226143417_ModifiedAuhtentication")]
-    partial class ModifiedAuhtentication
+    [Migration("20250321063127_First")]
+    partial class First
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -370,7 +370,6 @@ namespace GlorriJob.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Surname")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")

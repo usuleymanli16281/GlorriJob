@@ -16,11 +16,19 @@ namespace GlorriJob.Persistence.Implementations.Services;
 public class VacancyService : IVacancyService
 {
     private readonly IVacancyRepository _vacancyRepository;
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly ICityRepository _cityRepository;
+    private readonly ICompanyRepository _companyRepository;
+    private readonly IDepartmentRepository _departmentRepository;
     private readonly IMapper _mapper;
 
-    public VacancyService(IVacancyRepository vacancyRepository, IMapper mapper)
+    public VacancyService(IVacancyRepository vacancyRepository, ICategoryRepository categoryRepository, ICityRepository cityRepository, ICompanyRepository companyRepository, IDepartmentRepository departmentRepository, IMapper mapper)
     {
         _vacancyRepository = vacancyRepository;
+        _categoryRepository = categoryRepository;
+        _cityRepository = cityRepository;
+        _companyRepository = companyRepository;
+        _departmentRepository = departmentRepository;
         _mapper = mapper;
     }
 
@@ -31,9 +39,8 @@ public class VacancyService : IVacancyService
         {
             return new BaseResponse<VacancyGetDto>
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The vacancy does not exist.",
-                Data = null
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The vacancy does not exist."
             };
         }
 
@@ -49,8 +56,15 @@ public class VacancyService : IVacancyService
 
     public async Task<BaseResponse<Pagination<VacancyGetDto>>> GetVacanciesAsync(VacancyFilterDto filterDto)
     {
-       
-        IQueryable<Vacancy> query = _vacancyRepository.GetAll(v => !v.IsDeleted);
+		if (filterDto.PageNumber < 1 || filterDto.PageSize < 1)
+		{
+			return new BaseResponse<Pagination<VacancyGetDto>>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "Page number and page size should be greater than 0."
+			};
+		}
+		IQueryable<Vacancy> query = _vacancyRepository.GetAll(v => !v.IsDeleted);
 
         if (!string.IsNullOrEmpty(filterDto.Title))
         {
@@ -131,8 +145,7 @@ public class VacancyService : IVacancyService
             return new BaseResponse<Pagination<VacancyGetDto>>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "Page number and page size should be greater than 0.",
-                Data = null
+                Message = "Page number and page size should be greater than 0."
             };
         }
 
@@ -141,8 +154,7 @@ public class VacancyService : IVacancyService
             return new BaseResponse<Pagination<VacancyGetDto>>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "Search term must be at least 3 characters long.",
-                Data = null
+                Message = "Search term must be at least 3 characters long."
             };
         }
 
@@ -209,8 +221,7 @@ public class VacancyService : IVacancyService
             return new BaseResponse<VacancyGetDto>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
-                Data = null
+                Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
             };
         }
 
@@ -223,11 +234,46 @@ public class VacancyService : IVacancyService
             return new BaseResponse<VacancyGetDto>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "The vacancy already exists.",
-                Data = null
+                Message = "The vacancy already exists."
             };
         }
-
+        // branchId and detailId check
+        var category = await _categoryRepository.GetByIdAsync(createVacancyDto.CategoryId);
+        if(category is null)
+        {
+			return new BaseResponse<VacancyGetDto>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "This category does not exist."
+			};
+		}
+        var city = await _cityRepository.GetByIdAsync(createVacancyDto.CityId);
+        if(city is null)
+        {
+            return new BaseResponse<VacancyGetDto>
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "This city does not exist."
+            };
+        }
+        var company = await _companyRepository.GetByIdAsync(createVacancyDto.CompanyId);
+        if(company is null)
+        {
+			return new BaseResponse<VacancyGetDto>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "This company does not exist."
+			};
+		}
+        var department = await _departmentRepository.GetByIdAsync(createVacancyDto.DepartmentId);
+        if(department is null)
+        {
+			return new BaseResponse<VacancyGetDto>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = "This department does not exist."
+			};
+		}
         var createdVacancy = _mapper.Map<Vacancy>(createVacancyDto);
         await _vacancyRepository.AddAsync(createdVacancy);
         await _vacancyRepository.SaveChangesAsync();
@@ -249,8 +295,7 @@ public class VacancyService : IVacancyService
             return new BaseResponse<VacancyGetDto>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "Id does not match with the route parameter.",
-                Data = null
+                Message = "Id does not match with the route parameter."
             };
         }
 
@@ -282,7 +327,7 @@ public class VacancyService : IVacancyService
             expression: v => v.Title.ToLower() == vacancyUpdateDto.Title.ToLower() && v.Id != id && !v.IsDeleted,
             isTracking: false);
 
-        if (existedVacancy != null)
+        if (existedVacancy is not null)
         {
             return new BaseResponse<VacancyGetDto>
             {
@@ -309,27 +354,25 @@ public class VacancyService : IVacancyService
         };
     }
 
-    public async Task<BaseResponse<bool>> DeleteAsync(Guid id)
+    public async Task<BaseResponse<object>> DeleteAsync(Guid id)
     {
         var vacancy = await _vacancyRepository.GetByIdAsync(id);
         if (vacancy == null || vacancy.IsDeleted)
         {
-            return new BaseResponse<bool>
+            return new BaseResponse<object>
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The vacancy does not exist.",
-                Data = false
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The vacancy does not exist."
             };
         }
 
         vacancy.IsDeleted = true;
         await _vacancyRepository.SaveChangesAsync();
 
-        return new BaseResponse<bool>
+        return new BaseResponse<object>
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "The vacancy has been successfully deleted.",
-            Data = true
+            Message = "The vacancy has been successfully deleted."
         };
     }
     

@@ -102,7 +102,7 @@ public class AuthService : IAuthService
 				Data = null
 			};
 		}
-		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.EmailConfirmed && u.PhoneNumber == loginDto.Email);
+		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.EmailConfirmed && u.Email == loginDto.Email);
 		if (user is null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
 		{
 			return new BaseResponse<object>

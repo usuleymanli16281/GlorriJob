@@ -25,18 +25,17 @@ public class CityService : ICityService
 		_cityRepository = cityRepository;
 		_mapper = mapper;
 	}
-	public async Task<BaseResponse<CityCreateDto>> CreateAsync(CityCreateDto cityCreateDto)
+	public async Task<BaseResponse<CityGetDto>> CreateAsync(CityCreateDto cityCreateDto)
 	{
 		var validator = new CityCreateValidator();
 		var validationResult = await validator.ValidateAsync(cityCreateDto);
 
 		if (!validationResult.IsValid)
 		{
-			return new BaseResponse<CityCreateDto>
+			return new BaseResponse<CityGetDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
-				Data = null
+				Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
 			};
 		}
 		var existedCity = await _cityRepository.GetByFilter(expression:
@@ -45,22 +44,22 @@ public class CityService : ICityService
 
 		if (existedCity is not null)
 		{
-			return new BaseResponse<CityCreateDto>
+			return new BaseResponse<CityGetDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "The city already exists.",
-				Data = null
+				Message = "The city already exists."
 			};
 		}
 
 		var createdCity = _mapper.Map<City>(cityCreateDto);
 		await _cityRepository.AddAsync(createdCity);
 		await _cityRepository.SaveChangesAsync();
-		return new BaseResponse<CityCreateDto>
+		var cityGetDto = _mapper.Map<CityGetDto>(cityCreateDto);
+		return new BaseResponse<CityGetDto>
 		{
 			StatusCode = HttpStatusCode.OK,
 			Message = "The city is successfully created",
-			Data = cityCreateDto
+			Data = cityGetDto
 		};
 	}
 
@@ -100,6 +99,14 @@ public class CityService : ICityService
 		}
 		IQueryable<City> query = _cityRepository.GetAll(c => !c.IsDeleted);
 		int totalItems = await query.CountAsync();
+		if (totalItems == 0)
+		{
+			return new BaseResponse<Pagination<CityGetDto>>
+			{
+				StatusCode = HttpStatusCode.NotFound,
+				Message = "City does not exist"
+			};
+		}
 		if (isPaginated)
 		{
 			int skip = (pageNumber - 1) * pageSize;
@@ -109,6 +116,7 @@ public class CityService : ICityService
 		return new BaseResponse<Pagination<CityGetDto>>
 		{
 			StatusCode = HttpStatusCode.OK,
+			Message = "Cities are successfully retrieved",
 			Data = new Pagination<CityGetDto>
 			{
 				Items = cityGetDtos,
@@ -182,8 +190,7 @@ public class CityService : ICityService
 			return new BaseResponse<CityUpdateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "Id does not match with the root.",
-				Data = null
+				Message = "Id does not match with the root."
 			};
 		}
 		var validator = new CityUpdateValidator();
@@ -194,8 +201,7 @@ public class CityService : ICityService
 			return new BaseResponse<CityUpdateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage)),
-				Data = null
+				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage))
 			};
 		}
 		var city = await _cityRepository.GetByIdAsync(id);
@@ -204,31 +210,29 @@ public class CityService : ICityService
 			return new BaseResponse<CityUpdateDto>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "This city does not exist.",
-				Data = null
+				Message = "The city does not exist."
 			};
-    }
-    var existingCity = await _cityRepository.GetByFilter(
-    expression: c => c.Name.ToLower() == cityUpdateDto.Name.ToLower() && c.Id != id && !c.IsDeleted,
-    isTracking: false);
-    if (existingCity != null)
-      {
-        return new BaseResponse<CityUpdateDto>
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = $"A city with the name '{cityUpdateDto.Name}' already exists.",
-                Data = null
-            };
-      }
+		}
+		var existingCity = await _cityRepository.GetByFilter(
+		expression: c => c.Name.ToLower() == cityUpdateDto.Name.ToLower() && c.Id != id && !c.IsDeleted,
+		isTracking: false);
+		if (existingCity != null)
+		{
+			return new BaseResponse<CityUpdateDto>
+			{
+				StatusCode = HttpStatusCode.BadRequest,
+				Message = $"A city with the name '{cityUpdateDto.Name}' already exists."
+			};
+		}
 
-     city.Name = cityUpdateDto.Name;
-     await _cityRepository.SaveChangesAsync();
-     return new BaseResponse<CityUpdateDto>
-      {
-           StatusCode = HttpStatusCode.OK,
-           Message = "The city is successfully updated.",
-           Data = cityUpdateDto
-      };
+		city.Name = cityUpdateDto.Name;
+		await _cityRepository.SaveChangesAsync();
+		return new BaseResponse<CityUpdateDto>
+		{
+			StatusCode = HttpStatusCode.OK,
+			Message = "The city is successfully updated.",
+			Data = cityUpdateDto
+		};
 
 	}
 }

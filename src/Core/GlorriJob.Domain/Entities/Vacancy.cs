@@ -22,7 +22,6 @@ namespace GlorriJob.Domain.Entities
 		public Department Department { get; set; } = null!;
 		public Guid CityId { get; set; }
 		public City City { get; set; } = null!;
-        public Guid VacancyDetailId { get; set; }
         public VacancyDetail VacancyDetail { get; set; } = null!;
 		public DateTime ExpireDate { get; set; }
 		public bool IsSalaryVisible { get; set; }

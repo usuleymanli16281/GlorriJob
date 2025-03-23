@@ -81,9 +81,8 @@ public class IndustryService : IIndustryService
         {
 			return new BaseResponse<object>
 			{
-				StatusCode = HttpStatusCode.BadRequest,
-				Message = "The industry does not exist",
-				Data = null
+				StatusCode = HttpStatusCode.NotFound,
+				Message = "The industry does not exist"
 			};
 		}
         industry.IsDeleted = true;
@@ -92,8 +91,7 @@ public class IndustryService : IIndustryService
 		return new BaseResponse<object>
 		{
 			StatusCode = HttpStatusCode.OK,
-			Message = "The industry is successfully deleted",
-			Data = null
+			Message = "The industry is successfully deleted"
 		};
 	}
 
@@ -105,14 +103,20 @@ public class IndustryService : IIndustryService
 			return new BaseResponse<Pagination<IndustryGetDto>>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "Page number and page size should be greater than 0.",
-				Data = null
+				Message = "Page number and page size should be greater than 0."
 			};
 		}
         IQueryable<Industry> query = _industryRepository.GetAll(i => !i.IsDeleted);
 
         int totalItems = await query.CountAsync();
-
+        if(totalItems == 0)
+        {
+            return new BaseResponse<Pagination<IndustryGetDto>>
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The industry does not exist"
+            };
+        } 
         if (isPaginated)
         {
             int skip = (pageNumber - 1) * pageSize;
@@ -145,9 +149,8 @@ public class IndustryService : IIndustryService
         {
 			return new BaseResponse<IndustryGetDto>
 			{
-				StatusCode = HttpStatusCode.BadRequest,
-				Message = "The industry does not exist",
-				Data = null
+				StatusCode = HttpStatusCode.NotFound,
+				Message = "The industry does not exist"
 			};
 		}
         var industryGetDto = _mapper.Map<IndustryGetDto>(industry);
@@ -167,8 +170,7 @@ public class IndustryService : IIndustryService
 			return new BaseResponse<Pagination<IndustryGetDto>>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "Page number and page size should be greater than 0.",
-				Data = null
+				Message = "Page number and page size should be greater than 0."
 			};
 		}
 
@@ -221,8 +223,7 @@ public class IndustryService : IIndustryService
             return new BaseResponse<IndustryGetDto>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
-                Data = null
+                Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
             };
         }
 
@@ -231,9 +232,8 @@ public class IndustryService : IIndustryService
         {
             return new BaseResponse<IndustryGetDto>
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The industry does not exist.",
-                Data = null
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The industry does not exist."
             };
         }
 
@@ -246,8 +246,7 @@ public class IndustryService : IIndustryService
             return new BaseResponse<IndustryGetDto>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = $"An industry with the name '{industryUpdateDto.Name}' already exists.",
-                Data = null
+                Message = $"An industry with the name '{industryUpdateDto.Name}' already exists."
             };
         }
 

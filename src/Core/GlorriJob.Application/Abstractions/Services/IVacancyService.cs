@@ -13,7 +13,7 @@ public interface IVacancyService
     Task<BaseResponse<Pagination<VacancyGetDto>>> SearchVacanciesAsync(VacancyFilterDto filterDto);
     Task<BaseResponse<VacancyGetDto>> CreateAsync(VacancyCreateDto createVacancyDto);
     Task<BaseResponse<VacancyGetDto>> UpdateAsync(Guid id, VacancyUpdateDto vacancyUpdateDto);
-    Task<BaseResponse<bool>> DeleteAsync(Guid id);
+    Task<BaseResponse<object>> DeleteAsync(Guid id);
 }
 
 

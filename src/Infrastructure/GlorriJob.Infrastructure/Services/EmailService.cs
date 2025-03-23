@@ -23,7 +23,7 @@ namespace GlorriJob.Infrastructure.Services
 		public async Task SendEmailAsync(string toEmail, string subject, string body)
 		{
 			var message = new MimeMessage();
-			message.From.Add(new MailboxAddress("GlorriJob", "glorrijob@example.com"));
+			message.From.Add(new MailboxAddress("", "suleymanli4240@gmail.com"));
 			message.To.Add(new MailboxAddress("", toEmail));
 			message.Subject = subject;
 
