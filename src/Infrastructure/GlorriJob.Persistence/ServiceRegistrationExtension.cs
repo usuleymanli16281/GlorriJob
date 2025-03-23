@@ -67,6 +67,9 @@ public static class ServiceRegistrationExtension
         services.AddScoped<IVacancyRepository, VacancyRepository>();
         services.AddScoped<IVacancyService, VacancyService>();
 
+        services.AddScoped<IVacancyDetailRepository, VacancyDetailRepository>();
+        services.AddScoped<IVacancyDetailService, VacancyDetailService>();
+
         services.AddScoped<IAuthService, AuthService>();
 
         services.AddAutoMapper(typeof(CityProfile).Assembly);

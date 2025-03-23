@@ -375,9 +375,6 @@ public class VacancyService : IVacancyService
             Message = "The vacancy has been successfully deleted."
         };
     }
-    
-
-
 }
 
 
