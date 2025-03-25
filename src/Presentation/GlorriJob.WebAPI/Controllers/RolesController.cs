@@ -17,37 +17,32 @@ namespace GlorriJob.WebAPI.Controllers
             _roleService = roleService;
 		}
 		[HttpPost]
-		public async Task<IActionResult> CreateRoleAsync(string roleName)
+		public async Task<IActionResult> CreateRole(string roleName)
 		{
 			var response = await _roleService.CreateRoleAsync(roleName);
 			return StatusCode((int)response.StatusCode, response);
 		}
+
 		[HttpGet]
-		public async Task<IActionResult> RoleExistsAsync(string roleName)
-		{
-			var response = await _roleService.RoleExistsAsync(roleName);
-			return StatusCode((int)response.StatusCode, response);
-		}
-		[HttpGet]
-		public async Task<IActionResult> GetAllRolesAsync()
+		public async Task<IActionResult> GetAllRoles()
 		{
 			var response = await _roleService.GetAllRolesAsync();
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpDelete]
-		public async Task<IActionResult> DeleteRoleAsync(string roleName)
+		public async Task<IActionResult> DeleteRole(string roleName)
 		{
 			var response = await _roleService.DeleteRoleAsync(roleName);
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpPost]
-		public async Task<IActionResult> AddUserToRoleAsync(string userId, string roleName)
+		public async Task<IActionResult> AddUserToRole(string userId, string roleName)
 		{
 			var response = await _roleService.AddUserToRoleAsync(userId, roleName);
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpPost]
-		public async Task<IActionResult> RemoveUserFromRoleAsync(string userId, string roleName)
+		public async Task<IActionResult> RemoveUserFromRole(string userId, string roleName)
 		{
 			var response = await _roleService.RemoveUserFromRoleAsync(userId, roleName);
 			return StatusCode((int)response.StatusCode, response);
