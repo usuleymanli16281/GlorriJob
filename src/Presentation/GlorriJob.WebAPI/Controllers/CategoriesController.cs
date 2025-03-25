@@ -2,15 +2,12 @@
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Category;
 using GlorriJob.Domain.Shared;
-using GlorriJob.Persistence.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace GlorriJob.WebAPI.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/v1/[controller]/[action]")]
 [ApiController]
 public class CategoriesController : ControllerBase
 {

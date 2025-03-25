@@ -173,15 +173,15 @@ public class AuthService : IAuthService
 				Message = string.Join("; ", result.Errors.Select(e => e.Description))
 			};
 		}
+		await _userManager.AddToRoleAsync(user, "user");
 		var otp = new Random().Next(100000, 999999).ToString();
 		await _cacheService.SetOtpAsync(registerDto.Email, otp);
-		await _emailService.SendEmailAsync(registerDto.Email, "User Verification", otp);
+		await _emailService.SendEmailAsync(registerDto.Email, "User Verification", "This is your otp: " + otp);
 		BackgroundJob.Schedule(() => DeleteUnconfirmedUserAsync(user.Id.ToString()), TimeSpan.FromMinutes(15));
 		return new BaseResponse<object>
 		{
-			Data = otp,
 			Message = "User registered successfully. Otp has been sent",
-			StatusCode = HttpStatusCode.Created,
+			StatusCode = HttpStatusCode.Created
 		};
 	}
 	public async Task<BaseResponse<object>> VerifyUserAsync(VerifyUserDto verifyUserDto)

@@ -71,6 +71,7 @@ public static class ServiceRegistrationExtension
         services.AddScoped<IVacancyDetailService, VacancyDetailService>();
 
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IRoleService, RoleService>();
 
         services.AddAutoMapper(typeof(CityProfile).Assembly);
         services.AddValidatorsFromAssemblyContaining<CityUpdateValidator>();

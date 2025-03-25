@@ -7,7 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace GlorriJob.WebAPI.Controllers
 {
-  [Route("api/v1/[controller]")]
+  [Route("api/v1/[controller]/[action]")]
 	[ApiController]
 	public class CitiesController : ControllerBase
 	{

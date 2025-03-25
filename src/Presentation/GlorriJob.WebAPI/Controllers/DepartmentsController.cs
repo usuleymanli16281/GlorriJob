@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GlorriJob.WebAPI.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("api/v1/[controller]/[action]")]
 	[ApiController]
 	public class DepartmentsController : ControllerBase
 	{

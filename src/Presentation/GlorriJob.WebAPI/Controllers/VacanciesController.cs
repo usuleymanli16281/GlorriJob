@@ -1,16 +1,11 @@
-﻿using System.Net;
-using GlorriJob.Application.Abstractions.Services;
+﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Vacancy;
-using GlorriJob.Common.Shared;
-using GlorriJob.Domain;
-using GlorriJob.Domain.Shared;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace GlorriJob.WebAPI.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/v1/[controller]/[action]")]
 [ApiController]
 public class VacancyController : ControllerBase
 {
