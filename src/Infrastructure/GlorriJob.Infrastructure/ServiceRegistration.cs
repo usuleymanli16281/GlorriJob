@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
+using System.Security.Claims;
 using System.Text;
 
 namespace GlorriJob.Infrastructure;
@@ -33,7 +34,13 @@ public static class ServiceRegistrationExtension
                 ClockSkew = TimeSpan.Zero
             };
         });
-        services.AddScoped<IJwtService, JwtService>();
+        services.AddAuthorization(options =>
+        {
+			options.AddPolicy("UserPolicy", p => p.RequireRole("user"));
+			options.AddPolicy("AdminPolicy", p => p.RequireRole("admin"));
+		});
+
+		services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IImageKitService, ImageKitService>();
         services.AddScoped<IOtpCacheService, OtpCacheService>();
         services.AddScoped<IEmailService,  EmailService>();

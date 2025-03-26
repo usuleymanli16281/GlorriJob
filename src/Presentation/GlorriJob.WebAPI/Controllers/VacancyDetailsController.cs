@@ -21,30 +21,31 @@ namespace GlorriJob.WebAPI.Controllers
             _vacancyDetailService = vacancyDetailService;
         }
 
+		[HttpPost]
 		public async Task<IActionResult> Create(VacancyDetailCreateDto vacancyDetailCreateDto)
 		{
 			var response = await _vacancyDetailService.CreateAsync(vacancyDetailCreateDto);
 			return StatusCode((int)response.StatusCode, response);
 		}
-
+		[HttpDelete]
 		public async Task<IActionResult> Delete(Guid id)
 		{
 			var response = await _vacancyDetailService.DeleteAsync(id);
 			return StatusCode((int)response.StatusCode, response);
 		}
-
+		[HttpGet]
 		public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize = 10, bool isPaginated = false)
 		{
 			var response = await _vacancyDetailService.GetAllAsync(pageNumber, pageSize, isPaginated);
 			return StatusCode((int)response.StatusCode, response);
 		}
-
+		[HttpGet("{id}")]
 		public async Task<IActionResult> GetById(Guid id)
 		{
 			var response = await _vacancyDetailService.GetByIdAsync(id);
 			return StatusCode((int)response.StatusCode, response);
 		}
-
+		[HttpPut]
 		public async Task<IActionResult> Update(Guid id, VacancyDetailUpdateDto vacancyDetailUpdateDto)
 		{
 			var response = await _vacancyDetailService.UpdateAsync(id, vacancyDetailUpdateDto);

@@ -42,8 +42,8 @@ public class AuthService : IAuthService
 	}
 	public async Task<BaseResponse<object>> RefreshToken(string refreshtoken)
 	{
-		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken==refreshtoken);
-		if(user is null)
+		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshtoken);
+		if (user is null)
 		{
 			return new BaseResponse<object>
 			{
@@ -52,7 +52,7 @@ public class AuthService : IAuthService
 				Data = null
 			};
 		}
-		if(user.RefreshTokenExpiryTime < DateTime.UtcNow)
+		if (user.RefreshTokenExpiryTime < DateTime.UtcNow)
 		{
 			return new BaseResponse<object>
 			{
@@ -61,13 +61,16 @@ public class AuthService : IAuthService
 				Data = null
 			};
 		}
-		var claims = new[]
-		{
-			new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
-			new Claim(ClaimTypes.Name,user.Name),
-			new Claim(ClaimTypes.Surname,user.Surname ?? ""),
-			new Claim(ClaimTypes.Email, user.Email!)
-		};
+		var claims = new List<Claim>();
+		claims.AddRange(
+		[
+			new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+			new Claim(ClaimTypes.Name, user.Name),
+			new Claim(ClaimTypes.Surname, user.Surname ?? ""),
+			new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+		]);
+		var roles = await _userManager.GetRolesAsync(user);
+		claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 		string token = _jwtService.GenerateAccessToken(claims);
 		_ = int.TryParse(_configuration["JwtSettings:AccessTokenExpirationHours"], out int accessTokenExpiryTime);
 		string refreshToken = _jwtService.GenerateRefreshToken();
@@ -93,12 +96,12 @@ public class AuthService : IAuthService
 	{
 		var validator = new LoginDtoValidator();
 		var validationResult = await validator.ValidateAsync(loginDto);
-		if(!validationResult.IsValid)
+		if (!validationResult.IsValid)
 		{
 			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = string.Join(";",validationResult.Errors.Select(e => e.ErrorMessage)),
+				Message = string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage)),
 				Data = null
 			};
 		}
@@ -111,13 +114,16 @@ public class AuthService : IAuthService
 				Message = "Invalid email or password."
 			};
 		}
-		var claims = new[]
-		{
+		var claims = new List<Claim>();
+		claims.AddRange(
+		[
 			new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-			new Claim(ClaimTypes.Name,user.Name),
-			new Claim(ClaimTypes.Surname,user.Surname ?? ""),
-			new Claim(ClaimTypes.Email, loginDto.Email)
-		};
+			new Claim(ClaimTypes.Name, user.Name),
+			new Claim(ClaimTypes.Surname, user.Surname ?? ""),
+			new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+		]);
+		var roles = await _userManager.GetRolesAsync(user);
+		claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 		string token = _jwtService.GenerateAccessToken(claims);
 		_ = int.TryParse(_configuration["JwtSettings:AccessTokenExpirationHours"], out int accessTokenExpiryTime);
 		string refreshToken = _jwtService.GenerateRefreshToken();

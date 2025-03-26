@@ -1,6 +1,7 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Biography;
 using GlorriJob.Application.Dtos.Company;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,7 @@ namespace GlorriJob.WebAPI.Controllers
 			_biographyService = biographyService;
 		}
 		[HttpGet("all")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize = 1, bool isPaginated = true)
 		{
 			var response = await _biographyService.GetAllAsync(pageNumber, pageSize, isPaginated);
