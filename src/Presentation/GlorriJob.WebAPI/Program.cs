@@ -1,10 +1,12 @@
 using GlorriJob.Application.Abstractions.Services;
+using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Infrastructure;
 using GlorriJob.Persistence;
 using GlorriJob.Persistence.Implementations.Repositories;
 using Hangfire;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddPersistentServices(builder.Configuration);
 builder.Services.AddInfrastructureServices(builder.Configuration);
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSwaggerGen(c =>
 {
 	c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
@@ -44,6 +46,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -66,6 +69,7 @@ using (var scope = app.Services.CreateScope())
 		Console.WriteLine($"Error seeding roles and users: {ex.Message}");
 	}
 }
+UserContext.Configure(app.Services.GetRequiredService<IHttpContextAccessor>());
 app.UseAuthentication();
 
 app.UseAuthorization();
