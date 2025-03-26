@@ -1,5 +1,6 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Company;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,36 +16,42 @@ namespace GlorriJob.WebAPI.Controllers
             _companyService = companyService;
         }
 		[HttpGet("all")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize = 1, bool isPaginated = true)
 		{
 			var response = await _companyService.GetAllAsync(pageNumber, pageSize, isPaginated);
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpGet("{id}")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> GetById(Guid id)
 		{
 			var response = await _companyService.GetByIdAsync(id);
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpGet("search")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> SearchByName([FromQuery] string name, int pageNumber = 1, int pageSize = 1, bool isPaginated = true)
 		{
 			var response = await _companyService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpPost]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Create([FromForm] CompanyCreateDto companyCreateDto) 
 		{
 			var response = await _companyService.CreateAsync(companyCreateDto);
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpPut("{id}")]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Update(Guid id, [FromForm] CompanyUpdateDto companyUpdateDto)
 		{
 			var response = await _companyService.UpdateAsync(id, companyUpdateDto);
 			return StatusCode((int)response.StatusCode, response);
 		}
 		[HttpDelete("{id}")]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Delete(Guid id)
 		{
 			var response = await _companyService.DeleteAsync(id);

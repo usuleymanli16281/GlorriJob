@@ -70,6 +70,9 @@ public static class ServiceRegistrationExtension
         services.AddScoped<IVacancyDetailRepository, VacancyDetailRepository>();
         services.AddScoped<IVacancyDetailService, VacancyDetailService>();
 
+        services.AddScoped<ICompanyDetailRepository, CompanyDetailRepository>();
+        services.AddScoped<ICompanyDetailService, CompanyDetailService>();
+
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRoleService, RoleService>();
 

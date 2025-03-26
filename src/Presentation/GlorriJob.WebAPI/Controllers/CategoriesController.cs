@@ -2,6 +2,7 @@
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Category;
 using GlorriJob.Domain.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -19,6 +20,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = "UserPolicy")]
     public async Task<ActionResult<Pagination<CategoryGetDto>>> GetAllAsync(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -29,7 +31,8 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult<Pagination<CategoryGetDto>>> SearchByNameAsync(
+	[Authorize(Policy = "UserPolicy")]
+	public async Task<ActionResult<Pagination<CategoryGetDto>>> SearchByNameAsync(
         [FromQuery] string name,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -40,21 +43,24 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<CategoryGetDto>> GetByIdAsync(Guid id)
+	[Authorize(Policy = "UserPolicy")]
+	public async Task<ActionResult<CategoryGetDto>> GetByIdAsync(Guid id)
     {
         var result = await _categoryService.GetByIdAsync(id);
         return Ok(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CategoryGetDto>> CreateAsync([FromBody] CategoryCreateDto categoryCreateDto)
+	[Authorize(Policy = "AdminPolicy")]
+	public async Task<ActionResult<CategoryGetDto>> CreateAsync([FromBody] CategoryCreateDto categoryCreateDto)
     {
         var result = await _categoryService.CreateAsync(categoryCreateDto);
         return Ok(result);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<CategoryUpdateDto>> UpdateAsync(
+	[Authorize(Policy = "AdminPolicy")]
+	public async Task<ActionResult<CategoryUpdateDto>> UpdateAsync(
         Guid id,
         [FromBody] CategoryUpdateDto categoryUpdateDto)
     {
@@ -63,7 +69,8 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteAsync(Guid id)
+	[Authorize(Policy = "AdminPolicy")]
+	public async Task<ActionResult> DeleteAsync(Guid id)
     {
         await _categoryService.DeleteAsync(id);
         return NoContent();

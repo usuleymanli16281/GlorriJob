@@ -1,4 +1,5 @@
 ﻿using GlorriJob.Application.Abstractions.Repositories;
+using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities.Common;
 using GlorriJob.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,8 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public async Task<T> AddAsync(T entity)
     {
+        entity.CreatedDate = DateTime.UtcNow;
+        entity.CreatedBy = UserContext.GetUserEmail();
         await Table.AddAsync(entity);
         return entity;
     }
@@ -93,6 +96,8 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public T Update(T entity)
     {
+        entity.ModifiedDate = DateTime.UtcNow;
+        entity.ModifiedBy = UserContext.GetUserEmail();
         Table.Update(entity);
         return entity;
     }

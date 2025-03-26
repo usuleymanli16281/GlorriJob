@@ -1,6 +1,7 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.City;
 using GlorriJob.Application.Dtos.Department;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace GlorriJob.WebAPI.Controllers
 		}
 
 		[HttpGet("all")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> GetAll(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
@@ -27,12 +29,14 @@ namespace GlorriJob.WebAPI.Controllers
 		}
 
 		[HttpGet("{id}")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> GetById(Guid id)
 		{
 			var data = await _departmentService.GetByIdAsync(id);
 			return Ok(data);
 		}
 		[HttpGet]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> SearchByName(
 			[FromQuery] string name,
             [FromQuery] int pageNumber = 1,
@@ -44,6 +48,7 @@ namespace GlorriJob.WebAPI.Controllers
 		}
 
 		[HttpPost]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Create([FromBody] DepartmentCreateDto departmentCreateDto)
 		{
 			var data = await _departmentService.CreateAsync(departmentCreateDto);
@@ -52,6 +57,7 @@ namespace GlorriJob.WebAPI.Controllers
 
 
 		[HttpPut("{id}")]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Update(Guid id, [FromBody] DepartmentUpdateDto departmentUpdateDto)
 		{
 			var data = await _departmentService.UpdateAsync(id, departmentUpdateDto);
@@ -60,6 +66,7 @@ namespace GlorriJob.WebAPI.Controllers
 
 
 		[HttpDelete("{id}")]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Delete(Guid id)
 		{
 			await _departmentService.DeleteAsync(id);

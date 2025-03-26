@@ -1,5 +1,6 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.City;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection.Metadata.Ecma335;
 
@@ -18,6 +19,7 @@ namespace GlorriJob.WebAPI.Controllers
 		}
 
 		[HttpGet("all")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> GetAll(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -28,12 +30,14 @@ namespace GlorriJob.WebAPI.Controllers
 		}
 
 		[HttpGet("{id}")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> GetById(Guid id)
 		{
 			var response = await _cityService.GetByIdAsync(id);
 			return StatusCode((int)response.StatusCode, response); ;
 		}
 		[HttpGet("search")]
+		[Authorize(Policy = "UserPolicy")]
 		public async Task<IActionResult> SearchByName(
 		[FromQuery]string name,
         [FromQuery] int pageNumber = 1,
@@ -45,6 +49,7 @@ namespace GlorriJob.WebAPI.Controllers
 		}
 
 		[HttpPost]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Create([FromBody] CityCreateDto cityCreateDto)
 		{
 			var response =  await _cityService.CreateAsync(cityCreateDto);
@@ -53,6 +58,7 @@ namespace GlorriJob.WebAPI.Controllers
 
 		
 		[HttpPut("{id}")]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Update(Guid id, [FromBody] CityUpdateDto cityUpdateDto)
 		{
 			var response = await _cityService.UpdateAsync(id, cityUpdateDto);
@@ -61,6 +67,7 @@ namespace GlorriJob.WebAPI.Controllers
 
 		
 		[HttpDelete("{id}")]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> Delete(Guid id)
 		{
 			var response = await _cityService.DeleteAsync(id);

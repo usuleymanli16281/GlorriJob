@@ -3,6 +3,7 @@ using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Industry;
 using GlorriJob.Domain.Shared;
 using GlorriJob.Persistence.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GlorriJob.WebAPI.Controllers;
@@ -19,7 +20,8 @@ public class IndustriesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Pagination<IndustryGetDto>>> GetAllAsync(
+	[Authorize(Policy = "UserPolicy")]
+	public async Task<ActionResult<Pagination<IndustryGetDto>>> GetAllAsync(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] bool isPaginated = true)
@@ -29,7 +31,8 @@ public class IndustriesController : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult<Pagination<IndustryGetDto>>> SearchByNameAsync(
+	[Authorize(Policy = "UserPolicy")]
+	public async Task<ActionResult<Pagination<IndustryGetDto>>> SearchByNameAsync(
         [FromQuery] string name,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -40,21 +43,24 @@ public class IndustriesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<IndustryGetDto>> GetByIdAsync(Guid id)
+	[Authorize(Policy = "UserPolicy")]
+	public async Task<ActionResult<IndustryGetDto>> GetByIdAsync(Guid id)
     {
         var result = await _industryService.GetByIdAsync(id);
         return Ok(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<IndustryGetDto>> CreateAsync([FromBody] IndustryCreateDto industryCreateDto)
+	[Authorize(Policy = "AdminPolicy")]
+	public async Task<ActionResult<IndustryGetDto>> CreateAsync([FromBody] IndustryCreateDto industryCreateDto)
     {
         var result = await _industryService.CreateAsync(industryCreateDto);
         return Ok(result);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<IndustryUpdateDto>> UpdateAsync(
+	[Authorize(Policy = "AdminPolicy")]
+	public async Task<ActionResult<IndustryUpdateDto>> UpdateAsync(
         Guid id,
         [FromBody] IndustryUpdateDto industryUpdateDto)
     {
@@ -63,7 +69,8 @@ public class IndustriesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteAsync(Guid id)
+	[Authorize(Policy = "AdminPolicy")]
+	public async Task<ActionResult> DeleteAsync(Guid id)
     {
         await _industryService.DeleteAsync(id);
         return NoContent();
