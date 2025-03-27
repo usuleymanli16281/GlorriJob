@@ -27,7 +27,7 @@ public class CategoriesController : ControllerBase
         [FromQuery] bool isPaginated = true)
     {
         var result = await _categoryService.GetAllAsync(pageNumber, pageSize, isPaginated);
-        return Ok(result);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet("search")]
@@ -39,7 +39,7 @@ public class CategoriesController : ControllerBase
         [FromQuery] bool isPaginated = true)
     {
         var result = await _categoryService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);
-        return Ok(result);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet("{id}")]
@@ -47,7 +47,7 @@ public class CategoriesController : ControllerBase
 	public async Task<ActionResult<CategoryGetDto>> GetByIdAsync(Guid id)
     {
         var result = await _categoryService.GetByIdAsync(id);
-        return Ok(result);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpPost]
@@ -55,7 +55,7 @@ public class CategoriesController : ControllerBase
 	public async Task<ActionResult<CategoryGetDto>> CreateAsync([FromBody] CategoryCreateDto categoryCreateDto)
     {
         var result = await _categoryService.CreateAsync(categoryCreateDto);
-        return Ok(result);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpPut("{id}")]
@@ -65,15 +65,15 @@ public class CategoriesController : ControllerBase
         [FromBody] CategoryUpdateDto categoryUpdateDto)
     {
         var result = await _categoryService.UpdateAsync(id, categoryUpdateDto);
-        return Ok(result);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpDelete("{id}")]
 	[Authorize(Policy = "AdminPolicy")]
 	public async Task<ActionResult> DeleteAsync(Guid id)
     {
-        await _categoryService.DeleteAsync(id);
-        return NoContent();
+        var result = await _categoryService.DeleteAsync(id);
+        return StatusCode((int)result.StatusCode, result);
     }
 }
 

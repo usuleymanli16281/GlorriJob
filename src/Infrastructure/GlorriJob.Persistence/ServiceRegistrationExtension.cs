@@ -73,6 +73,9 @@ public static class ServiceRegistrationExtension
         services.AddScoped<ICompanyDetailRepository, CompanyDetailRepository>();
         services.AddScoped<ICompanyDetailService, CompanyDetailService>();
 
+        services.AddScoped<IBranchRepository, BranchRepository>();
+        services.AddScoped<IBranchService, BranchService>();
+
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRoleService, RoleService>();
 

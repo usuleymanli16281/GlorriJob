@@ -22,49 +22,49 @@ public class VacancyController : ControllerBase
 	[Authorize(Policy = "UserPolicy")]
 	public async Task<IActionResult> GetByIdAsync(Guid id)
     {
-        var response = await _vacancyService.GetByIdAsync(id);
-        return Ok(response);
+        var result = await _vacancyService.GetByIdAsync(id);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet]
 	[Authorize(Policy = "UserPolicy")]
 	public async Task<IActionResult> GetVacanciesAsync([FromQuery] VacancyFilterDto filterDto)
     {
-        var response = await _vacancyService.GetVacanciesAsync(filterDto);
-        return Ok(response);
+        var result = await _vacancyService.GetVacanciesAsync(filterDto);
+        return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet("search")]
 	[Authorize(Policy = "UserPolicy")]
 	public async Task<IActionResult> SearchVacanciesAsync([FromQuery] VacancyFilterDto filterDto)
     {
-        var response = await _vacancyService.SearchVacanciesAsync(filterDto);
-        return Ok(response);
-    }
+        var result = await _vacancyService.SearchVacanciesAsync(filterDto);
+		return StatusCode((int)result.StatusCode, result);
+	}
 
     [HttpPost]
 	[Authorize(Policy = "AdminPolicy")]
 	public async Task<IActionResult> CreateAsync([FromBody] VacancyCreateDto createVacancyDto)
     {
-        var response = await _vacancyService.CreateAsync(createVacancyDto);
-        return Ok(response);
-    }
+        var result = await _vacancyService.CreateAsync(createVacancyDto);
+		return StatusCode((int)result.StatusCode, result);
+	}
 
     [HttpPut("{id}")]
 	[Authorize(Policy = "AdminPolicy")]
 	public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] VacancyUpdateDto vacancyUpdateDto)
     {
-        var response = await _vacancyService.UpdateAsync(id, vacancyUpdateDto);
-        return Ok(response);
-    }
+        var result = await _vacancyService.UpdateAsync(id, vacancyUpdateDto);
+		return StatusCode((int)result.StatusCode, result);
+	}
 
     [HttpDelete("{id}")]
 	[Authorize(Policy = "AdminPolicy")]
 	public async Task<IActionResult> DeleteAsync(Guid id)
     {
-        var response = await _vacancyService.DeleteAsync(id);
-        return Ok(response);
+        var result = await _vacancyService.DeleteAsync(id);
+		return StatusCode((int)result.StatusCode, result);
 
-    }
+	}
 }
 

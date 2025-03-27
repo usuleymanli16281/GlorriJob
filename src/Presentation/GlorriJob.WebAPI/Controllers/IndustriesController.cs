@@ -27,8 +27,8 @@ public class IndustriesController : ControllerBase
         [FromQuery] bool isPaginated = true)
     {
         var result = await _industryService.GetAllAsync(pageNumber, pageSize, isPaginated);
-        return Ok(result);
-    }
+		return StatusCode((int)result.StatusCode, result);
+	}
 
     [HttpGet("search")]
 	[Authorize(Policy = "UserPolicy")]
@@ -39,24 +39,24 @@ public class IndustriesController : ControllerBase
         [FromQuery] bool isPaginated = true)
     {
         var result = await _industryService.SearchByNameAsync(name, pageNumber, pageSize, isPaginated);
-        return Ok(result);
-    }
+		return StatusCode((int)result.StatusCode, result);
+	}
 
     [HttpGet("{id}")]
 	[Authorize(Policy = "UserPolicy")]
 	public async Task<ActionResult<IndustryGetDto>> GetByIdAsync(Guid id)
     {
         var result = await _industryService.GetByIdAsync(id);
-        return Ok(result);
-    }
+		return StatusCode((int)result.StatusCode, result);
+	}
 
     [HttpPost]
 	[Authorize(Policy = "AdminPolicy")]
 	public async Task<ActionResult<IndustryGetDto>> CreateAsync([FromBody] IndustryCreateDto industryCreateDto)
     {
         var result = await _industryService.CreateAsync(industryCreateDto);
-        return Ok(result);
-    }
+		return StatusCode((int)result.StatusCode, result);
+	}
 
     [HttpPut("{id}")]
 	[Authorize(Policy = "AdminPolicy")]
@@ -65,16 +65,16 @@ public class IndustriesController : ControllerBase
         [FromBody] IndustryUpdateDto industryUpdateDto)
     {
         var result = await _industryService.UpdateAsync(id, industryUpdateDto);
-        return Ok(result);
-    }
+		return StatusCode((int)result.StatusCode, result);
+	}
 
     [HttpDelete("{id}")]
 	[Authorize(Policy = "AdminPolicy")]
 	public async Task<ActionResult> DeleteAsync(Guid id)
     {
-        await _industryService.DeleteAsync(id);
-        return NoContent();
-    }
+        var result = await _industryService.DeleteAsync(id);
+		return StatusCode((int)result.StatusCode, result);
+	}
 
 }
 

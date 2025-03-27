@@ -48,6 +48,7 @@ namespace GlorriJob.Infrastructure
 				var result = await userManager.CreateAsync(adminUser, adminPassword);
 				if (result.Succeeded)
 				{
+					await userManager.AddToRoleAsync(adminUser, "user");
 					await userManager.AddToRoleAsync(adminUser, "admin");
 					Console.WriteLine("Admin user created successfully!");
 				}
