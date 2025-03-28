@@ -5,9 +5,13 @@ using GlorriJob.Infrastructure;
 using GlorriJob.Persistence;
 using GlorriJob.Persistence.Implementations.Repositories;
 using Hangfire;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using System.Net;
+using System.Net.Mime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +74,25 @@ using (var scope = app.Services.CreateScope())
 	}
 }
 UserContext.Configure(app.Services.GetRequiredService<IHttpContextAccessor>());
+app.UseExceptionHandler(options =>
+{
+	options.Run(async context =>
+	{
+		context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+		context.Response.ContentType = MediaTypeNames.Application.Json;
+
+		var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+		if(contextFeature is not null)
+		{
+			await context.Response.WriteAsync(new ErrorDetail
+			{
+				StatusCode = context.Response.StatusCode,
+				Message = "Internal Server Error",
+				Detail = contextFeature.Error.Message
+			}.ToString());
+		}
+	});
+});
 app.UseAuthentication();
 
 app.UseAuthorization();
