@@ -27,7 +27,7 @@ public class JwtService : IJwtService
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["AccessTokenExpirationHours"])),
+            expires: DateTime.UtcNow.AddHours(Convert.ToDouble(jwtSettings["AccessTokenExpirationHours"])),
             signingCredentials: creds
         );
 

@@ -18,6 +18,7 @@ namespace GlorriJob.WebAPI.Controllers
             _roleService = roleService;
 		}
 		[HttpPost]
+		[Authorize(Policy = "AdminPolicy")]
 		public async Task<IActionResult> CreateRole(string roleName)
 		{
 			var response = await _roleService.CreateRoleAsync(roleName);
