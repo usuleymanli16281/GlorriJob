@@ -4,10 +4,12 @@ using GlorriJob.Application.Dtos.City;
 using GlorriJob.Application.Dtos.Identity;
 using GlorriJob.Application.Validations.City;
 using GlorriJob.Application.Validations.Identity;
+using GlorriJob.Common.Contracts;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Persistence.Contexts;
 using Hangfire;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -25,20 +27,20 @@ public class AuthService : IAuthService
 	private IMapper _mapper { get; }
 	private IConfiguration _configuration { get; }
 	private IOtpCacheService _cacheService { get; }
-	private IEmailService _emailService { get; }
+	private IPublishEndpoint _publishEndpoint { get; }
 	public AuthService(IJwtService jwtService,
 		UserManager<User> userManager,
 		IMapper mapper,
 		IConfiguration configuration,
 		IOtpCacheService cacheService,
-		IEmailService emailService)
+		IPublishEndpoint publishEndpoint)
 	{
 		_jwtService = jwtService;
 		_userManager = userManager;
 		_mapper = mapper;
 		_configuration = configuration;
 		_cacheService = cacheService;
-		_emailService = emailService;
+		_publishEndpoint = publishEndpoint;
 	}
 	public async Task<BaseResponse<object>> RefreshToken(string refreshtoken)
 	{
@@ -182,7 +184,12 @@ public class AuthService : IAuthService
 		await _userManager.AddToRoleAsync(user, "user");
 		var otp = new Random().Next(100000, 999999).ToString();
 		await _cacheService.SetOtpAsync(registerDto.Email, otp);
-		await _emailService.SendEmailAsync(registerDto.Email, "User Verification", "This is your otp: " + otp);
+		await _publishEndpoint.Publish(new SendEmailMessage
+		{
+			To = registerDto.Email,
+			Subject = "User Verification",
+			Body = $"This is your otp: {otp}"
+		});
 		BackgroundJob.Schedule(() => DeleteUnconfirmedUserAsync(user.Id.ToString()), TimeSpan.FromMinutes(15));
 		return new BaseResponse<object>
 		{

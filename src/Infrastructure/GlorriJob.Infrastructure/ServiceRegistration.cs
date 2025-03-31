@@ -1,6 +1,8 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
+using GlorriJob.Infrastructure.Consumers;
 using GlorriJob.Infrastructure.Services;
 using GlorriJob.Persistence.Implementations.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +41,7 @@ public static class ServiceRegistrationExtension
 			options.AddPolicy("UserPolicy", p => p.RequireRole("user"));
 			options.AddPolicy("AdminPolicy", p => p.RequireRole("admin"));
 		});
+
 
 		services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IImageKitService, ImageKitService>();

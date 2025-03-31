@@ -3,12 +3,14 @@ using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Profiles;
 using GlorriJob.Application.Validations.City;
+using GlorriJob.Common.Contracts;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Persistence.Contexts;
 using GlorriJob.Persistence.Implementations.Repositories;
 using GlorriJob.Persistence.Implementations.Services;
 using Hangfire;
 using Hangfire.PostgreSql;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -31,7 +33,6 @@ public static class ServiceRegistrationExtension
         })
         .AddRoles<Role>()
         .AddEntityFrameworkStores<GlorriJobDbContext>();
-
 
 		services.AddHangfire(config =>
 		{

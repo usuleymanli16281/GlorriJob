@@ -2,9 +2,11 @@ using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Entities;
 using GlorriJob.Infrastructure;
+using GlorriJob.Infrastructure.Consumers;
 using GlorriJob.Persistence;
 using GlorriJob.Persistence.Implementations.Repositories;
 using Hangfire;
+using MassTransit;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -20,6 +22,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddPersistentServices(builder.Configuration);
 builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddMassTransit(config =>
+{
+	var host = builder.Configuration["MassTransit:Host"];
+	var username = builder.Configuration["MassTransit:Username"];
+	var password = builder.Configuration["MassTransit:Password"];
+	var port = int.Parse(builder.Configuration["MassTransit:Port"]!);
+	var rabbitMqUri = new Uri($"rabbitmq://{host}:{port}");
+	config.AddConsumer<SendEmailConsumer>();
+	config.UsingRabbitMq((context, cfg) =>
+	{
+		cfg.Host(rabbitMqUri, h =>
+		{
+			h.Username(builder.Configuration["MassTransit:Username"]!);
+			h.Password(builder.Configuration["MassTransit:Password"]!);
+		});
+
+		cfg.ConfigureEndpoints(context);
+	});
+
+	
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSwaggerGen(c =>
 {
