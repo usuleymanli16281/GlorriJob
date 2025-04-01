@@ -1,7 +1,5 @@
-﻿using GlorriJob.Application.Dtos.Category;
-using GlorriJob.Application.Dtos.Vacancy;
+﻿using GlorriJob.Application.Dtos.Vacancy;
 using GlorriJob.Common.Shared;
-using GlorriJob.Domain;
 using GlorriJob.Domain.Shared;
 
 namespace GlorriJob.Application.Abstractions.Services;

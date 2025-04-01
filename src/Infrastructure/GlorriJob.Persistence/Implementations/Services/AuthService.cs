@@ -42,7 +42,7 @@ public class AuthService : IAuthService
 		_cacheService = cacheService;
 		_publishEndpoint = publishEndpoint;
 	}
-	public async Task<BaseResponse<object>> RefreshToken(string refreshtoken)
+	public async Task<BaseResponse<object>> RefreshTokenAsync(string refreshtoken)
 	{
 		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshtoken);
 		if (user is null)
@@ -87,9 +87,9 @@ public class AuthService : IAuthService
 			Data = new
 			{
 				AccessToken = token,
-				AccessTokenExpiration = accessTokenExpiryTime,
+				AccessTokenExpirationHours = accessTokenExpiryTime,
 				RefreshToken = refreshToken,
-				RefreshTokenExpiration = refreshTokenExpiryTime
+				RefreshTokenExpirationHours = refreshTokenExpiryTime
 			}
 		};
 
@@ -140,9 +140,9 @@ public class AuthService : IAuthService
 			Data = new
 			{
 				AccessToken = token,
-				AccessTokenExpiration = accessTokenExpiryTime,
+				AccessTokenExpirationHours = accessTokenExpiryTime,
 				RefreshToken = refreshToken,
-				RefreshTokenExpiration = refreshTokenExpiryTime
+				RefreshTokenExpirationHours = refreshTokenExpiryTime
 			}
 		};
 
@@ -181,7 +181,6 @@ public class AuthService : IAuthService
 				Message = string.Join("; ", result.Errors.Select(e => e.Description))
 			};
 		}
-		await _userManager.AddToRoleAsync(user, "user");
 		var otp = new Random().Next(100000, 999999).ToString();
 		await _cacheService.SetOtpAsync(registerDto.Email, otp);
 		await _publishEndpoint.Publish(new SendEmailMessage
@@ -195,6 +194,34 @@ public class AuthService : IAuthService
 		{
 			Message = "User registered successfully. Otp has been sent",
 			StatusCode = HttpStatusCode.Created
+		};
+	}
+	public async Task<BaseResponse<object>> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto)
+	{
+		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.EmailConfirmed && u.Email == forgotPasswordDto.Email);
+		if (user is null)
+		{
+			return new BaseResponse<object>
+			{
+				Message = "User is not found.",
+				StatusCode = HttpStatusCode.NotFound,
+			};
+		}
+
+		var otp = new Random().Next(100000, 999999).ToString();
+		await _cacheService.SetOtpAsync(forgotPasswordDto.Email, otp);
+
+		await _publishEndpoint.Publish(new SendEmailMessage
+		{
+			To = forgotPasswordDto.Email,
+			Body = $"This is your otp {otp}",
+			Subject = "User Verification for the new password"
+		});
+
+		return new BaseResponse<object>
+		{
+			Message = "OTP has been sent to your email.",
+			StatusCode = HttpStatusCode.OK
 		};
 	}
 	public async Task<BaseResponse<object>> VerifyUserAsync(VerifyUserDto verifyUserDto)
@@ -230,7 +257,7 @@ public class AuthService : IAuthService
 
 		user.EmailConfirmed = true;
 		await _userManager.UpdateAsync(user);
-
+		await _userManager.AddToRoleAsync(user, "user");
 		await _cacheService.RemoveOtpAsync(verifyUserDto.Email);
 
 		return new BaseResponse<object>
@@ -239,7 +266,47 @@ public class AuthService : IAuthService
 			Message = "Email is  successfully confirmed."
 		};
 	}
+	public async Task<BaseResponse<object>> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+	{
+		var user = await _userManager.Users.FirstOrDefaultAsync(u => u.EmailConfirmed && u.Email == resetPasswordDto.Email);
+		if (user is null)
+		{
+			return new BaseResponse<object>
+			{
+				Message = "User is not found.",
+				StatusCode = HttpStatusCode.NotFound
+			};
+		}
 
+		var cachedOtp = await _cacheService.GetOtpAsync(resetPasswordDto.Email);
+		if (cachedOtp is null || cachedOtp != resetPasswordDto.Otp)
+		{
+			return new BaseResponse<object>
+			{
+				Message = "Invalid or expired OTP.",
+				StatusCode = HttpStatusCode.BadRequest
+			};
+		}
+
+		var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+		var result = await _userManager.ResetPasswordAsync(user, resetToken, resetPasswordDto.NewPassword);
+		if (!result.Succeeded)
+		{
+			return new BaseResponse<object>
+			{
+				Message = string.Join("; ", result.Errors.Select(e => e.Description)),
+				StatusCode = HttpStatusCode.BadRequest,
+			};
+		}
+
+		await _cacheService.RemoveOtpAsync(resetPasswordDto.Email);
+
+		return new BaseResponse<object>
+		{
+			Message = "Password has been successfully reset.",
+			StatusCode = HttpStatusCode.OK
+		};
+	}
 	public async Task DeleteUnconfirmedUserAsync(string userId)
 	{
 		var user = await _userManager.FindByIdAsync(userId);

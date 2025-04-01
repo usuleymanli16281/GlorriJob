@@ -32,7 +32,9 @@ public static class ServiceRegistrationExtension
             opt.User.RequireUniqueEmail = true;
         })
         .AddRoles<Role>()
-        .AddEntityFrameworkStores<GlorriJobDbContext>();
+        .AddEntityFrameworkStores<GlorriJobDbContext>()
+        .AddDefaultTokenProviders()
+		.AddTokenProvider<DataProtectorTokenProvider<User>>("Default");
 
 		services.AddHangfire(config =>
 		{

@@ -1,5 +1,4 @@
-﻿using GlorriJob.Application.Dtos;
-using GlorriJob.Application.Dtos.City;
+﻿using GlorriJob.Application.Dtos.City;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Shared;
 

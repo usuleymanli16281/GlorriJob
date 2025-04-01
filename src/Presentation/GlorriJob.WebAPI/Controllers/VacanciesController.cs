@@ -8,11 +8,11 @@ namespace GlorriJob.WebAPI.Controllers;
 
 [Route("api/v1/[controller]/[action]")]
 [ApiController]
-public class VacancyController : ControllerBase
+public class VacanciesController : ControllerBase
 {
     private readonly IVacancyService _vacancyService;
 
-    public VacancyController(IVacancyService vacancyService)
+    public VacanciesController(IVacancyService vacancyService)
     {
         _vacancyService = vacancyService;
     }
@@ -20,7 +20,7 @@ public class VacancyController : ControllerBase
    
     [HttpGet("{id}")]
 	[Authorize(Policy = "UserPolicy")]
-	public async Task<IActionResult> GetByIdAsync(Guid id)
+	public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _vacancyService.GetByIdAsync(id);
         return StatusCode((int)result.StatusCode, result);
@@ -28,7 +28,7 @@ public class VacancyController : ControllerBase
 
     [HttpGet]
 	[Authorize(Policy = "UserPolicy")]
-	public async Task<IActionResult> GetVacanciesAsync([FromQuery] VacancyFilterDto filterDto)
+	public async Task<IActionResult> GetAll([FromQuery] VacancyFilterDto filterDto)
     {
         var result = await _vacancyService.GetVacanciesAsync(filterDto);
         return StatusCode((int)result.StatusCode, result);
@@ -36,7 +36,7 @@ public class VacancyController : ControllerBase
 
     [HttpGet("search")]
 	[Authorize(Policy = "UserPolicy")]
-	public async Task<IActionResult> SearchVacanciesAsync([FromQuery] VacancyFilterDto filterDto)
+	public async Task<IActionResult> Search([FromQuery] VacancyFilterDto filterDto)
     {
         var result = await _vacancyService.SearchVacanciesAsync(filterDto);
 		return StatusCode((int)result.StatusCode, result);
@@ -44,7 +44,7 @@ public class VacancyController : ControllerBase
 
     [HttpPost]
 	[Authorize(Policy = "AdminPolicy")]
-	public async Task<IActionResult> CreateAsync([FromBody] VacancyCreateDto createVacancyDto)
+	public async Task<IActionResult> Create([FromBody] VacancyCreateDto createVacancyDto)
     {
         var result = await _vacancyService.CreateAsync(createVacancyDto);
 		return StatusCode((int)result.StatusCode, result);
@@ -52,7 +52,7 @@ public class VacancyController : ControllerBase
 
     [HttpPut("{id}")]
 	[Authorize(Policy = "AdminPolicy")]
-	public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] VacancyUpdateDto vacancyUpdateDto)
+	public async Task<IActionResult> Update(Guid id, [FromBody] VacancyUpdateDto vacancyUpdateDto)
     {
         var result = await _vacancyService.UpdateAsync(id, vacancyUpdateDto);
 		return StatusCode((int)result.StatusCode, result);
@@ -60,7 +60,7 @@ public class VacancyController : ControllerBase
 
     [HttpDelete("{id}")]
 	[Authorize(Policy = "AdminPolicy")]
-	public async Task<IActionResult> DeleteAsync(Guid id)
+	public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _vacancyService.DeleteAsync(id);
 		return StatusCode((int)result.StatusCode, result);

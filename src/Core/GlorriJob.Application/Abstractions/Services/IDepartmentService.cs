@@ -1,12 +1,8 @@
-﻿using GlorriJob.Application.Dtos.City;
+﻿
 using GlorriJob.Application.Dtos.Department;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace GlorriJob.Application.Abstractions.Services
 {

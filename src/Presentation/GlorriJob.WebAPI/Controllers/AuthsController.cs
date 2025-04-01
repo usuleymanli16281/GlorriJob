@@ -1,6 +1,5 @@
 ﻿using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.Identity;
-using GlorriJob.Domain;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GlorriJob.WebAPI.Controllers;
@@ -18,7 +17,7 @@ public class AuthsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> RefreshToken(string refreshtoken)
     {
-        var response = await _authService.RefreshToken(refreshtoken);
+        var response = await _authService.RefreshTokenAsync(refreshtoken);
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -41,6 +40,19 @@ public class AuthsController : ControllerBase
 	public async Task<IActionResult> VerifyUser([FromBody] VerifyUserDto verifyUserDto)
 	{
 		var response = await _authService.VerifyUserAsync(verifyUserDto);
+		return StatusCode((int)response.StatusCode, response);
+	}
+	[HttpPost]
+	public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+	{
+		var response = await _authService.ForgotPasswordAsync(forgotPasswordDto);
+		return StatusCode((int)response.StatusCode, response);
+	}
+
+	[HttpPost]
+	public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+	{
+		var response = await _authService.ResetPasswordAsync(resetPasswordDto);
 		return StatusCode((int)response.StatusCode, response);
 	}
 }

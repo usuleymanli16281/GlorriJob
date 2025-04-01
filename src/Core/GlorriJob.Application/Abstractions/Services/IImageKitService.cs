@@ -1,5 +1,4 @@
-﻿using GlorriJob.Common.Shared;
-
+﻿
 
 namespace GlorriJob.Application.Abstractions.Services
 {
