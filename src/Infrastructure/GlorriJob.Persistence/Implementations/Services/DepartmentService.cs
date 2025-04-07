@@ -130,7 +130,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			}
 
 			List<DepartmentGetDto> departmentGetDtos = await query
-				.Select(d => new DepartmentGetDto { Id = d.Id, Name = d.Name })
+				.Select(d => new DepartmentGetDto { Id = d.Id, Name = d.Name, BranchId = d.BranchId })
 				.ToListAsync();
 
 			var pagination = new Pagination<DepartmentGetDto>

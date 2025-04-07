@@ -141,9 +141,11 @@ namespace GlorriJob.Persistence.Implementations.Services
 			List<BiographyGetDto> biographyGetDtos = await query.Select(c =>
 				new BiographyGetDto
 				{
+					Id = c.Id,
 					Value = c.Value,
 					Key = c.Key,
-					Icon = c.Icon
+					Icon = c.Icon,
+					CompanyId = c.CompanyId
 				}).ToListAsync();
 			return new BaseResponse<Pagination<BiographyGetDto>>
 			{

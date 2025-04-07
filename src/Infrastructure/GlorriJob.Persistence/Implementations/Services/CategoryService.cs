@@ -124,7 +124,7 @@ public class CategoryService : ICategoryService
             {
                 Id = c.Id,
                 Name = c.Name,
-                ExistedVacancy = c.Vacancies.Count(v => !v.IsDeleted)
+                ExistedVacancy = c.ExistedVacancy
             })
             .ToListAsync();
 
@@ -200,7 +200,7 @@ public class CategoryService : ICategoryService
             {
                 Id = c.Id,
                 Name = c.Name,
-                ExistedVacancy = c.Vacancies.Count(v => !v.IsDeleted)
+                ExistedVacancy = c.ExistedVacancy
             })
             .ToListAsync();
 

@@ -38,7 +38,7 @@ public static class ServiceRegistrationExtension
         });
         services.AddAuthorization(options =>
         {
-			options.AddPolicy("UserPolicy", p => p.RequireRole("user"));
+			options.AddPolicy("UserPolicy", p => p.RequireRole("user","admin"));
 			options.AddPolicy("AdminPolicy", p => p.RequireRole("admin"));
 		});
 
