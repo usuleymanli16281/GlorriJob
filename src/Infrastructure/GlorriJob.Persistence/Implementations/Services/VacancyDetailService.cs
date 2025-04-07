@@ -30,13 +30,13 @@ namespace GlorriJob.Persistence.Implementations.Services
 			_vacancyRepository = vacancyRepository;
 			_mapper = mapper;
         }
-        public async Task<BaseResponse<VacancyDetailGetDto>> CreateAsync(VacancyDetailCreateDto vacancyDetailCreateDto)
+        public async Task<BaseResponse<object>> CreateAsync(VacancyDetailCreateDto vacancyDetailCreateDto)
 		{
 			var validation = new VacancyDetailCreateValidator();
 			var validationResult = await validation.ValidateAsync(vacancyDetailCreateDto);
 			if (!validationResult.IsValid)
 			{
-				return new BaseResponse<VacancyDetailGetDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
@@ -45,22 +45,20 @@ namespace GlorriJob.Persistence.Implementations.Services
 			var vacancy = await _vacancyRepository.GetByIdAsync(vacancyDetailCreateDto.VacancyId);
 			if (vacancy is null)
 			{
-				return new BaseResponse<VacancyDetailGetDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.NotFound,
-					Message = "This vacancy does not exist."
+					Message = "This vacancy detail does not exist."
 				};
 			}
 
 			var vacancyDetail = _mapper.Map<VacancyDetail>(vacancyDetailCreateDto);
 			await _vacancyDetailRepository.AddAsync(vacancyDetail);
 			await _vacancyDetailRepository.SaveChangesAsync();
-			var vacancyDetailGetDto = _mapper.Map<VacancyDetailGetDto>(vacancyDetailCreateDto);
-			return new BaseResponse<VacancyDetailGetDto>
+			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.Created,
-				Message = "The vacancy detail is successfully created.",
-				Data = vacancyDetailGetDto
+				Message = "The vacancy detail is successfully created."
 			};
 		}
 
@@ -104,7 +102,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				new BaseResponse<Pagination<VacancyDetailGetDto>>
 				{
 					StatusCode = HttpStatusCode.NotFound,
-					Message = "The vacancy details are not found"
+					Message = "The vacancy detail is not found"
 				};
 			}
 			if (isPaginated)
@@ -150,17 +148,17 @@ namespace GlorriJob.Persistence.Implementations.Services
 			var vacancyDetailGetDto = _mapper.Map<VacancyDetailGetDto>(vacancyDetail);
 			return new BaseResponse<VacancyDetailGetDto>
 			{
-				StatusCode = HttpStatusCode.NoContent,
+				StatusCode = HttpStatusCode.OK,
 				Message = "The vacancy detail is successfully retrieved.",
 				Data = vacancyDetailGetDto
 			};
 		}
 
-		public async Task<BaseResponse<VacancyDetailGetDto>> UpdateAsync(Guid id, VacancyDetailUpdateDto vacancyDetailUpdateDto)
+		public async Task<BaseResponse<object>> UpdateAsync(Guid id, VacancyDetailUpdateDto vacancyDetailUpdateDto)
 		{
 			if (vacancyDetailUpdateDto.Id != id)
 			{
-				return new BaseResponse<VacancyDetailGetDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = "Id does not match with the route parameter."
@@ -170,7 +168,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			var validationResult = await validator.ValidateAsync(vacancyDetailUpdateDto);
 			if (!validationResult.IsValid)
 			{
-				return new BaseResponse<VacancyDetailGetDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
@@ -179,7 +177,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			var vacancyDetail = await _vacancyDetailRepository.GetByIdAsync(id);
 			if (vacancyDetail is null || vacancyDetail.IsDeleted)
 			{
-				return new BaseResponse<VacancyDetailGetDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.NotFound,
 					Message = "The vacancy detail does not exist."
@@ -188,7 +186,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			var vacancy = await _vacancyRepository.GetByIdAsync(vacancyDetailUpdateDto.VacancyId);
 			if (vacancy is null)
 			{
-				return new BaseResponse<VacancyDetailGetDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.NotFound,
 					Message = "This vacancy does not exist."
@@ -202,11 +200,10 @@ namespace GlorriJob.Persistence.Implementations.Services
 			_vacancyDetailRepository.Update(vacancyDetail);
 			await _vacancyDetailRepository.SaveChangesAsync();
 
-			return new BaseResponse<VacancyDetailGetDto>
+			return new BaseResponse<object>
 			{
-				StatusCode = HttpStatusCode.OK,
-				Message = "The vacancy detail is successfully updated.",
-				Data = _mapper.Map<VacancyDetailGetDto>(vacancyDetail)
+				StatusCode = HttpStatusCode.NoContent,
+				Message = "The vacancy detail is successfully updated."
 			};
 		}
 	}

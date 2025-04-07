@@ -2,6 +2,7 @@
 using GlorriJob.Application.Dtos.Vacancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 
 namespace GlorriJob.WebAPI.Controllers;
@@ -22,25 +23,17 @@ public class VacanciesController : ControllerBase
 	[Authorize(Policy = "UserPolicy")]
 	public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _vacancyService.GetByIdAsync(id);
+		var result = await _vacancyService.GetByIdAsync(id);
         return StatusCode((int)result.StatusCode, result);
     }
 
     [HttpGet]
 	[Authorize(Policy = "UserPolicy")]
-	public async Task<IActionResult> GetAll([FromQuery] VacancyFilterDto filterDto)
+	public async Task<IActionResult> GetAll([FromQuery] VacancyFilterDto filterDto, int pageNumber = 1, int pageSize = 10, bool isPaginated = true)
     {
-        var result = await _vacancyService.GetVacanciesAsync(filterDto);
+        var result = await _vacancyService.GetAllAsync(filterDto, pageNumber, pageSize, isPaginated);
         return StatusCode((int)result.StatusCode, result);
     }
-
-    [HttpGet("search")]
-	[Authorize(Policy = "UserPolicy")]
-	public async Task<IActionResult> Search([FromQuery] VacancyFilterDto filterDto)
-    {
-        var result = await _vacancyService.SearchVacanciesAsync(filterDto);
-		return StatusCode((int)result.StatusCode, result);
-	}
 
     [HttpPost]
 	[Authorize(Policy = "AdminPolicy")]

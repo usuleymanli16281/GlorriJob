@@ -14,6 +14,7 @@ using GlorriJob.Domain.Shared;
 using GlorriJob.Persistence.Exceptions;
 using GlorriJob.Common.Shared;
 using System.Net;
+using GlorriJob.Application.Dtos.Branch;
 namespace GlorriJob.Persistence.Implementations.Services;
 
 public class CategoryService : ICategoryService
@@ -27,14 +28,14 @@ public class CategoryService : ICategoryService
         _mapper = mapper;
     }
 
-    public async Task<BaseResponse<CategoryGetDto>> CreateAsync(CategoryCreateDto categoryCreateDto)
+    public async Task<BaseResponse<object>> CreateAsync(CategoryCreateDto categoryCreateDto)
     {
         var validator = new CategoryCreateValidator();
         var validationResult = await validator.ValidateAsync(categoryCreateDto);
 
         if (!validationResult.IsValid)
         {
-            return new BaseResponse<CategoryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
@@ -46,9 +47,9 @@ public class CategoryService : ICategoryService
             expression: c => c.Name.ToLower() == categoryCreateDto.Name.ToLower() && !c.IsDeleted,
             isTracking: false);
 
-        if (existedCategory != null)
+        if (existedCategory is not null)
         {
-            return new BaseResponse<CategoryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = $"A category with the name '{categoryCreateDto.Name}' already exists.",
@@ -60,13 +61,10 @@ public class CategoryService : ICategoryService
         await _categoryRepository.AddAsync(createdCategory);
         await _categoryRepository.SaveChangesAsync();
 
-        var categoryGetDto = _mapper.Map<CategoryGetDto>(createdCategory);
-
-        return new BaseResponse<CategoryGetDto>
+        return new BaseResponse<object>
         {
             StatusCode = HttpStatusCode.Created,
-            Message = "The category is successfully created.",
-            Data = categoryGetDto
+            Message = "The category is successfully created."
         };
     }
 
@@ -77,9 +75,8 @@ public class CategoryService : ICategoryService
         {
             return new BaseResponse<object>
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The category does not exist.",
-                Data = null
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The category does not exist."
             };
         }
 
@@ -88,9 +85,8 @@ public class CategoryService : ICategoryService
 
         return new BaseResponse<object>
         {
-            StatusCode = HttpStatusCode.OK,
-            Message = "The category is successfully deleted.",
-            Data = null
+            StatusCode = HttpStatusCode.NoContent,
+            Message = "The category is successfully deleted."
         };
     }
 
@@ -109,8 +105,15 @@ public class CategoryService : ICategoryService
         IQueryable<Category> query = _categoryRepository.GetAll(c => !c.IsDeleted);
 
         int totalItems = await query.CountAsync();
-
-        if (isPaginated)
+		if (totalItems == 0)
+		{
+			return new BaseResponse<Pagination<CategoryGetDto>>
+			{
+				StatusCode = HttpStatusCode.NotFound,
+				Message = "The category does not exist"
+			};
+		}
+		if (isPaginated)
         {
             int skip = (pageNumber - 1) * pageSize;
             query = query.Skip(skip).Take(pageSize);
@@ -149,9 +152,8 @@ public class CategoryService : ICategoryService
         {
             return new BaseResponse<CategoryGetDto>
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The category does not exist.",
-                Data = null
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The category does not exist."
             };
         }
 
@@ -172,16 +174,22 @@ public class CategoryService : ICategoryService
             return new BaseResponse<Pagination<CategoryGetDto>>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "Page number and page size should be greater than 0.",
-                Data = null
+                Message = "Page number and page size should be greater than 0."
             };
         }
 
         IQueryable<Category> query = _categoryRepository.GetAll(c => !c.IsDeleted && c.Name.ToLower().Contains(name.ToLower()));
 
         int totalItems = await query.CountAsync();
-
-        if (isPaginated)
+		if (totalItems == 0)
+		{
+			return new BaseResponse<Pagination<CategoryGetDto>>
+			{
+				StatusCode = HttpStatusCode.NotFound,
+				Message = "The branch does not exist"
+			};
+		}
+		if (isPaginated)
         {
             int skip = (pageNumber - 1) * pageSize;
             query = query.Skip(skip).Take(pageSize);
@@ -213,15 +221,14 @@ public class CategoryService : ICategoryService
         };
     }
 
-    public async Task<BaseResponse<CategoryGetDto>> UpdateAsync(Guid id, CategoryUpdateDto categoryUpdateDto)
+    public async Task<BaseResponse<object>> UpdateAsync(Guid id, CategoryUpdateDto categoryUpdateDto)
     {
         if (id != categoryUpdateDto.Id)
         {
-            return new BaseResponse<CategoryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "Id does not match with the route parameter.",
-                Data = null
+                Message = "Id does not match with the route parameter."
             };
         }
 
@@ -230,7 +237,7 @@ public class CategoryService : ICategoryService
 
         if (!validationResult.IsValid)
         {
-            return new BaseResponse<CategoryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
@@ -241,39 +248,35 @@ public class CategoryService : ICategoryService
         var category = await _categoryRepository.GetByIdAsync(id);
         if (category == null || category.IsDeleted)
         {
-            return new BaseResponse<CategoryGetDto>
+            return new BaseResponse<object>
             {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "The category does not exist.",
-                Data = null
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "The category does not exist."
             };
         }
 
         var existedCategory = await _categoryRepository.GetByFilter(
-            expression: c => c.Name.ToLower() == categoryUpdateDto.Name.ToLower() && c.Id != id && !c.IsDeleted,
+            expression: c => category.Name.ToLower() != categoryUpdateDto.Name.ToLower() && c.Name.ToLower() == categoryUpdateDto.Name.ToLower() && c.Id != id && !c.IsDeleted,
             isTracking: false);
 
-        if (existedCategory != null)
+        if (existedCategory is not null)
         {
-            return new BaseResponse<CategoryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = $"A category with the name '{categoryUpdateDto.Name}' already exists.",
-                Data = null
+                Message = $"A category with the name '{categoryUpdateDto.Name}' already exists."
             };
         }
 
         category.Name = categoryUpdateDto.Name;
+        _categoryRepository.Update(category);
         await _categoryRepository.SaveChangesAsync();
 
-        
-        var updatedCategoryDto = _mapper.Map<CategoryGetDto>(category);
 
-        return new BaseResponse<CategoryGetDto>
+        return new BaseResponse<object>
         {
-            StatusCode = HttpStatusCode.OK,
-            Message = "The category has been successfully updated.",
-            Data = updatedCategoryDto
+            StatusCode = HttpStatusCode.NoContent,
+            Message = "The category has been successfully updated."
         };
     }
 

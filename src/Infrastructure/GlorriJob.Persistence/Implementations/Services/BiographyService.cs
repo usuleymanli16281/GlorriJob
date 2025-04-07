@@ -39,17 +39,6 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
 				};
 			}
-			var biography = await _biographyRepository.GetByFilter(b =>
-			b.Key.ToLower() == biographyCreateDto.Key.ToLower() &&
-			!b.IsDeleted);
-			if (biography is not null)
-			{
-				return new BaseResponse<object>
-				{
-					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"A biography with the key '{biographyCreateDto.Key}' already exists."
-				};
-			}
 			var company = await _companyRepository.GetByIdAsync(biographyCreateDto.CompanyId);
 			if (company is null)
 			{
@@ -59,8 +48,20 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Message = "This company does not exist."
 				};
 			}
+			var biography = await _biographyRepository.GetByFilter(b =>
+			b.Key.ToLower() == biographyCreateDto.Key.ToLower() && 
+			b.CompanyId == biographyCreateDto.CompanyId &&
+			!b.IsDeleted);
+			if (biography is not null)
+			{
+				return new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"A biography with the key '{biographyCreateDto.Key}' already exists for this company."
+				};
+			}
 			var iconPath = biographyCreateDto.Icon is not null ? await UploadImageAsync(biographyCreateDto.Icon) : null;
-			if (iconPath is null)
+			if (biographyCreateDto.Icon is not null && iconPath is null)
 			{
 				return new BaseResponse<object>
 				{
@@ -129,7 +130,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				new BaseResponse<Pagination<BiographyGetDto>>
 				{
 					StatusCode = HttpStatusCode.NotFound,
-					Message = "The biographies are not found"
+					Message = "The biography is not found"
 				};
 			}
 			if (isPaginated)
@@ -206,19 +207,6 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Message = "The biography does not exist."
 				};
 			}
-			var existedBiography = await _biographyRepository.GetByFilter(b =>
-			biography.Key != biographyUpdateDto.Key &&
-			b.Key.ToLower() == biographyUpdateDto.Key.ToLower() &&
-			!b.IsDeleted);
-
-			if (existedBiography is not null)
-			{
-				return new BaseResponse<object>
-				{
-					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"A biography with the key '{biographyUpdateDto.Key}' already exists."
-				};
-			}
 			var company = await _companyRepository.GetByIdAsync(biographyUpdateDto.CompanyId);
 			if (company is null)
 			{
@@ -226,6 +214,20 @@ namespace GlorriJob.Persistence.Implementations.Services
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = "This company Id does not exist."
+				};
+			}
+			var existedBiography = await _biographyRepository.GetByFilter(b =>
+			biography.Key.ToLower() != biographyUpdateDto.Key.ToLower() &&
+			b.Key.ToLower() == biographyUpdateDto.Key.ToLower() &&
+			b.CompanyId == biographyUpdateDto.CompanyId &&
+			!b.IsDeleted);
+
+			if (existedBiography is not null)
+			{
+				return new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = $"A biography with the key '{biographyUpdateDto.Key}' already exists for this company."
 				};
 			}
 			string? newIconPath = biographyUpdateDto.Icon is not null ? await UploadImageAsync(biographyUpdateDto.Icon) : null;
@@ -250,11 +252,12 @@ namespace GlorriJob.Persistence.Implementations.Services
 			biography.Key = biographyUpdateDto.Key;
 			biography.Value = biographyUpdateDto.Value;
 			biography.Icon = newIconPath;
+			_biographyRepository.Update(biography);
 			await _biographyRepository.SaveChangesAsync();
 			var biographyGetDto = _mapper.Map<BiographyGetDto>(biography);
 			return new BaseResponse<object>
 			{
-				StatusCode = HttpStatusCode.OK,
+				StatusCode = HttpStatusCode.NoContent,
 				Message = "The biography is successfully updated"
 			};
 		}

@@ -50,8 +50,8 @@ namespace GlorriJob.Persistence.Implementations.Services
 				};
 			}
 
-			var vacancyDetail = _mapper.Map<CompanyDetail>(companyDetailCreateDto);
-			await _companyDetailRepository.AddAsync(vacancyDetail);
+			var companyDetail = _mapper.Map<CompanyDetail>(companyDetailCreateDto);
+			await _companyDetailRepository.AddAsync(companyDetail);
 			await _companyDetailRepository.SaveChangesAsync();
 			return new BaseResponse<object>
 			{

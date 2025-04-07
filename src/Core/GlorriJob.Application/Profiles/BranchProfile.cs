@@ -15,6 +15,7 @@ namespace GlorriJob.Application.Profiles
         public BranchProfile()
         {
 			CreateMap<Branch, BranchGetDto>().ReverseMap();
+			CreateMap<Branch, BranchCreateDto>().ReverseMap();
 		}
     }
 }

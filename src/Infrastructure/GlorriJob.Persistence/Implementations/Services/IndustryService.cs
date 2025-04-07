@@ -4,6 +4,7 @@ using FluentValidation;
 using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.City;
+using GlorriJob.Application.Dtos.Company;
 using GlorriJob.Application.Dtos.Department;
 using GlorriJob.Application.Dtos.Industry;
 using GlorriJob.Application.Validations.Industry;
@@ -30,14 +31,14 @@ public class IndustryService : IIndustryService
         _mapper = mapper;
     }
 
-    public async Task<BaseResponse<IndustryGetDto>> CreateAsync(IndustryCreateDto industryCreateDto)
+    public async Task<BaseResponse<object>> CreateAsync(IndustryCreateDto industryCreateDto)
     {
         var validator = new IndustryCreateValidator();
         var validationResult = await validator.ValidateAsync(industryCreateDto);
 
         if (!validationResult.IsValid)
         {
-			return new BaseResponse<IndustryGetDto>
+			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
 				Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
@@ -46,16 +47,15 @@ public class IndustryService : IIndustryService
         }
 
         var existedIndustry = await _industryRepository.GetByFilter(
-            expression: i => i.Name == industryCreateDto.Name && !i.IsDeleted,
+            expression: i => i.Name.ToLower() == industryCreateDto.Name.ToLower() && !i.IsDeleted,
             isTracking: false);
 
         if (existedIndustry is not null)
         {
-			return new BaseResponse<IndustryGetDto>
+			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.BadRequest,
-				Message = "The industry already exists.",
-				Data = null
+				Message = "The industry already exists."
 			};
 		}
 
@@ -63,13 +63,10 @@ public class IndustryService : IIndustryService
         await _industryRepository.AddAsync(createdIndustry);
         await _industryRepository.SaveChangesAsync();
 
-        var industryGetDto = _mapper.Map<IndustryGetDto>(createdIndustry);
-
-		return new BaseResponse<IndustryGetDto>
+		return new BaseResponse<object>
 		{
 			StatusCode = HttpStatusCode.Created,
-			Message = "The industry is successfully created.",
-			Data = industryGetDto
+			Message = "The industry is successfully created."
 		};
 
 	}
@@ -90,7 +87,7 @@ public class IndustryService : IIndustryService
 
 		return new BaseResponse<object>
 		{
-			StatusCode = HttpStatusCode.OK,
+			StatusCode = HttpStatusCode.NoContent,
 			Message = "The industry is successfully deleted"
 		};
 	}
@@ -176,9 +173,16 @@ public class IndustryService : IIndustryService
 
         IQueryable<Industry> query = _industryRepository.GetAll(i => !i.IsDeleted && i.Name.ToLower().Contains(name.ToLower()));
 
-        int totalItem = await query.CountAsync();
-
-        if (isPaginated)
+        int totalItems = await query.CountAsync();
+		if (totalItems == 0)
+		{
+			return new BaseResponse<Pagination<IndustryGetDto>>
+			{
+				StatusCode = HttpStatusCode.NotFound,
+				Message = "The industry does not exist"
+			};
+		}
+		if (isPaginated)
         {
             int skip = (pageNumber - 1) * pageSize;
             query = query.Skip(skip).Take(pageSize);
@@ -189,29 +193,28 @@ public class IndustryService : IIndustryService
         var pagination = new Pagination<IndustryGetDto>
         {
             Items = industryGetDtos,
-            TotalCount = totalItem,
+            TotalCount = totalItems,
             PageIndex = pageNumber,
-            PageSize = isPaginated ? pageSize : totalItem,
-            TotalPage = (int)Math.Ceiling((double)totalItem / pageSize),
+            PageSize = isPaginated ? pageSize : totalItems,
+            TotalPage = (int)Math.Ceiling((double)totalItems / pageSize),
         };
 
 		return new BaseResponse<Pagination<IndustryGetDto>>
 		{
 			StatusCode = HttpStatusCode.OK,
-			Message = "Industry search is successfully completed.",
+			Message = "Industries are successfully retrieved.",
 			Data = pagination
 		};
 	}
 
-    public async Task<BaseResponse<IndustryGetDto>> UpdateAsync(Guid id, IndustryUpdateDto industryUpdateDto)
+    public async Task<BaseResponse<object>> UpdateAsync(Guid id, IndustryUpdateDto industryUpdateDto)
     {
         if (id != industryUpdateDto.Id)
         {
-            return new BaseResponse<IndustryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Message = "Id does not match with the route parameter.",
-                Data = null
+                Message = "Id does not match with the route parameter."
             };
         }
 
@@ -220,7 +223,7 @@ public class IndustryService : IIndustryService
 
         if (!validationResult.IsValid)
         {
-            return new BaseResponse<IndustryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
@@ -230,7 +233,7 @@ public class IndustryService : IIndustryService
         var industry = await _industryRepository.GetByIdAsync(id);
         if (industry == null || industry.IsDeleted)
         {
-            return new BaseResponse<IndustryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "The industry does not exist."
@@ -238,12 +241,12 @@ public class IndustryService : IIndustryService
         }
 
         var existedIndustry = await _industryRepository.GetByFilter(
-            expression: i => i.Name.ToLower() == industryUpdateDto.Name.ToLower() && i.Id != id && !i.IsDeleted,
+            expression: i => industry.Name.ToLower() != industryUpdateDto.Name.ToLower() && i.Name.ToLower() == industryUpdateDto.Name.ToLower() && i.Id != id && !i.IsDeleted,
             isTracking: false);
 
-        if (existedIndustry != null)
+        if (existedIndustry is not null)
         {
-            return new BaseResponse<IndustryGetDto>
+            return new BaseResponse<object>
             {
                 StatusCode = HttpStatusCode.BadRequest,
                 Message = $"An industry with the name '{industryUpdateDto.Name}' already exists."
@@ -251,15 +254,14 @@ public class IndustryService : IIndustryService
         }
 
         industry.Name = industryUpdateDto.Name;
+        _industryRepository.Update(industry);
         await _industryRepository.SaveChangesAsync();
+       
 
-        var updatedIndustryDto = _mapper.Map<IndustryGetDto>(industry);
-
-        return new BaseResponse<IndustryGetDto>
+        return new BaseResponse<object>
         {
-            StatusCode = HttpStatusCode.OK,
-            Message = "The industry has been successfully updated.",
-            Data = updatedIndustryDto
+            StatusCode = HttpStatusCode.NoContent,
+            Message = "The industry has been successfully updated."
         };
     }
 

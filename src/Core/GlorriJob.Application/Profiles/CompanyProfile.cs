@@ -14,10 +14,7 @@ namespace GlorriJob.Application.Profiles
 	{
         public CompanyProfile()
         {
-			CreateMap<Company, CompanyGetDto>()
-				.ForMember(dest => dest.DepartmentGetDtos, opt => opt.MapFrom(src => src.Departments))
-				.ForMember(dest => dest.IndustryGetDto, opt => opt.MapFrom(src => src.Industry))
-				.ReverseMap();
+			CreateMap<Company, CompanyGetDto>().ReverseMap();
 			CreateMap<Company, CompanyCreateDto>().ReverseMap();
 			CreateMap<Company, CompanyUpdateDto>().ReverseMap();
 		}

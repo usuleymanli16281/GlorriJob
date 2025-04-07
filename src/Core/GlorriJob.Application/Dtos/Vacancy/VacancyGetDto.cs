@@ -5,15 +5,14 @@ namespace GlorriJob.Application.Dtos.Vacancy;
 public record VacancyGetDto
 {
    public Guid Id { get; set; }
-    public string Title { get; set; } = null!;
+    public required string Title { get; set; } = null!;
     public VacancyType VacancyType { get; set; } = VacancyType.FullTime;
     public JobLevel JobLevel { get; set; } = JobLevel.EntryLevel;
-    public Guid CategoryId { get; set; }
-    public Guid CompanyId { get; set; }
-    public Guid BranchId { get; set; }
-    public Guid DepartmentId { get; set; }
-    public Guid CityId { get; set; }
-    public Guid VacancyDetailId { get; set; }
+    public required string CategoryName { get; set; }
+    public required string CompanyName { get; set; }
+    public required string BranchName { get; set; }
+    public required string DepartmentName { get; set; }
+    public required string CityName { get; set; }
     public DateTime ExpireDate { get; set; }
     public bool IsSalaryVisible { get; set; }
     public bool IsRemote { get; set; }

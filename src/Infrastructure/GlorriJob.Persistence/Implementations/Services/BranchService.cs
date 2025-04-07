@@ -55,7 +55,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.NotFound,
-					Message = $"This company does not exist"
+					Message = "This company does not exist"
 				};
 			}
 			var city = await _cityRepository.GetByIdAsync(branchCreateDto.CityId);
@@ -64,22 +64,34 @@ namespace GlorriJob.Persistence.Implementations.Services
 				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.NotFound,
-					Message = $"This city does not exist"
+					Message = "This city does not exist"
 				};
 			}
 
-			var existedBranch = await _branchRepository.GetByFilter(c => c.Name.ToLower() == branchCreateDto.Name.ToLower() && !c.IsDeleted);
+			var existedBranch = await _branchRepository.GetByFilter(b => b.Name.ToLower() == branchCreateDto.Name.ToLower() && 
+			b.CityId == branchCreateDto.CityId && 
+			b.CompanyId == branchCreateDto.CompanyId && 
+			!b.IsDeleted);
 
 			if (existedBranch is not null)
 			{
 				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"A branch with the name '{branchCreateDto.Name}' already exists."
+					Message = $"A branch with the name '{branchCreateDto.Name}' already exists for this company in this city."
 				};
 			}
-
-			await _branchRepository.AddAsync(existedBranch!);
+			var mainBranch = await _branchRepository.GetByFilter(b => b.IsMain && b.CompanyId == branchCreateDto.CompanyId);
+			if (mainBranch is not null && branchCreateDto.IsMain)
+			{
+				return new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					Message = "Main branch already exists for this company."
+				};
+			}
+			var branch = _mapper.Map<Branch>(branchCreateDto);
+			await _branchRepository.AddAsync(branch);
 			await _branchRepository.SaveChangesAsync();
 			return new BaseResponse<object>
 			{
@@ -127,7 +139,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 				return new BaseResponse<Pagination<BranchGetDto>>
 				{
 					StatusCode = HttpStatusCode.NotFound,
-					Message = "A branch does not exist"
+					Message = "The branch does not exist"
 				};
 			}
 			if (isPaginated)
@@ -150,7 +162,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			{
 				Data = pagination,
 				StatusCode = HttpStatusCode.OK,
-				Message = "Branches are successfully fetched.",
+				Message = "Branches are successfully retrieved.",
 			};
 		}
 
@@ -221,16 +233,20 @@ namespace GlorriJob.Persistence.Implementations.Services
 					Message = "This city does not exist"
 				};
 			}
-			var existingBranch = await _branchRepository.GetByFilter(b => branch.Name != branchUpdateDto.Name && b.Name.ToLower() == branchUpdateDto.Name.ToLower() && !b.IsDeleted);
+			var existingBranch = await _branchRepository.GetByFilter(b => branch.Name.ToLower() != branchUpdateDto.Name.ToLower() && 
+			b.Name.ToLower() == branchUpdateDto.Name.ToLower() && 
+			b.CityId == branchUpdateDto.CityId && 
+			b.CompanyId == branchUpdateDto.CompanyId && 
+			!b.IsDeleted);
 			if (existingBranch is not null)
 			{
 				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"A branch with the name '{branchUpdateDto.Name}' already exists."
+					Message = $"A branch with the name '{branchUpdateDto.Name}' already exists for this company in this city."
 				};
 			}
-			var mainBranch = _branchRepository.GetByFilter(x => x.CompanyId == branchUpdateDto.CompanyId && x.IsMain == true);
+			var mainBranch = _branchRepository.GetByFilter(x => x.CompanyId == branchUpdateDto.CompanyId && x.IsMain);
 			if (branchUpdateDto.IsMain && mainBranch is not null)
 			{
 				return new BaseResponse<object>
@@ -244,6 +260,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 			branch.CompanyId = branchUpdateDto.CompanyId;
 			branch.CityId = branchUpdateDto.CityId;
 			branch.IsMain = branchUpdateDto.IsMain;
+			_branchRepository.Update(branch);
 			await _branchRepository.SaveChangesAsync();
 			return new BaseResponse<object>
 			{

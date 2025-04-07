@@ -31,9 +31,6 @@ public class VacancyCreateValidator : AbstractValidator<VacancyCreateDto>
         RuleFor(x => x.CityId)
             .NotEmpty().WithMessage("CityId is required.");
 
-        RuleFor(x => x.VacancyDetailId)
-            .NotEmpty().WithMessage("VacancyDetailId is required.");
-
         RuleFor(x => x.ExpireDate)
             .GreaterThan(DateTime.Now).WithMessage("ExpireDate must be in the future.");
 

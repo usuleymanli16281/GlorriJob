@@ -13,7 +13,6 @@ public record VacancyCreateDto
     public required Guid BranchId { get; set; }
     public required Guid DepartmentId { get; set; }
     public required Guid CityId { get; set; }
-    public required Guid VacancyDetailId { get; set; }
     public required DateTime ExpireDate { get; set; }
     public bool IsSalaryVisible { get; set; }
     public bool IsRemote { get; set; }

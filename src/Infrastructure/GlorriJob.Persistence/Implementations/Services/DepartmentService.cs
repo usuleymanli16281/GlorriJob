@@ -2,6 +2,7 @@
 using GlorriJob.Application.Abstractions.Repositories;
 using GlorriJob.Application.Abstractions.Services;
 using GlorriJob.Application.Dtos.City;
+using GlorriJob.Application.Dtos.Company;
 using GlorriJob.Application.Dtos.Department;
 using GlorriJob.Common.Shared;
 using GlorriJob.Domain;
@@ -21,32 +22,41 @@ namespace GlorriJob.Persistence.Implementations.Services
 	public class DepartmentService : IDepartmentService
 	{
 		private IDepartmentRepository _departmentRepository { get; }
+		private IBranchRepository _branchRepository { get; }
 		private IMapper _mapper { get; }
 
-		public DepartmentService(IDepartmentRepository departmentRepository, IMapper mapper)
+		public DepartmentService(IDepartmentRepository departmentRepository, IBranchRepository branchRepository, IMapper mapper)
 		{
 			_departmentRepository = departmentRepository;
+			_branchRepository = branchRepository; 
 			_mapper = mapper;
 		}
 
-		public async Task<BaseResponse<DepartmentGetDto>> CreateAsync(DepartmentCreateDto departmentCreateDto)
+		public async Task<BaseResponse<object>> CreateAsync(DepartmentCreateDto departmentCreateDto)
 		{
 			var validator = new DepartmentCreateValidator();
 			var validationResult = await validator.ValidateAsync(departmentCreateDto);
 
 			if (!validationResult.IsValid)
 			{
-				new BaseResponse<DepartmentGetDto>
+				new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
-					Data = null
+					Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
 				};
 			}
-			// branch check
+			var branch  = await _branchRepository.GetByIdAsync(departmentCreateDto.BranchId);
+			if(branch is null)
+			{
+				new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.NotFound,
+					Message = "The branch does not exist"
+				};
+			}
 			var existedDepartment = await _departmentRepository.GetByFilter(
 				d => !d.IsDeleted &&
-					 d.Name.ToLower().Contains(departmentCreateDto.Name.ToLower()) &&
+					 d.Name.ToLower() == departmentCreateDto.Name.ToLower() &&
 					 d.BranchId == departmentCreateDto.BranchId
 			);
 
@@ -55,22 +65,17 @@ namespace GlorriJob.Persistence.Implementations.Services
 				new BaseResponse<DepartmentGetDto>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = "The branch already has this department",
-					Data = null
+					Message = "This department already exists in the branch"
 				};
 			}
 
 			var createdDepartment = _mapper.Map<Department>(departmentCreateDto);
 			await _departmentRepository.AddAsync(createdDepartment);
 			await _departmentRepository.SaveChangesAsync();
-
-			var departmentGetDto = _mapper.Map<DepartmentGetDto>(createdDepartment);
-
-			return new BaseResponse<DepartmentGetDto>
+			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.Created,
-				Message = "The department is successfully created.",
-				Data = departmentGetDto
+				Message = "The department is successfully created."
 			};
 		}
 
@@ -109,7 +114,6 @@ namespace GlorriJob.Persistence.Implementations.Services
 			IQueryable<Department> query = _departmentRepository.GetAll(d => !d.IsDeleted);
 
 			int totalItems = await query.CountAsync();
-
 			if (totalItems == 0)
 			{
 				return new BaseResponse<Pagination<DepartmentGetDto>>
@@ -163,7 +167,8 @@ namespace GlorriJob.Persistence.Implementations.Services
 			return new BaseResponse<DepartmentGetDto>
 			{
 				StatusCode = HttpStatusCode.OK,
-				Message = "The department is successfully retrieved."
+				Message = "The department is successfully retrieved.",
+				Data = departmentGetDto
 			};
 		}
 
@@ -174,15 +179,21 @@ namespace GlorriJob.Persistence.Implementations.Services
 				return new BaseResponse<Pagination<DepartmentGetDto>>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = "Page number and page size should be greater than 0.",
-					Data = null
+					Message = "Page number and page size should be greater than 0."
 				};
 			}
 
 			IQueryable<Department> query = _departmentRepository.GetAll(d => !d.IsDeleted && d.Name.ToLower().Contains(name.ToLower()));
 
 			int totalItems = await query.CountAsync();
-
+			if (totalItems == 0)
+			{
+				return new BaseResponse<Pagination<DepartmentGetDto>>
+				{
+					StatusCode = HttpStatusCode.NotFound,
+					Message = "The department does not exist"
+				};
+			}
 			if (isPaginated)
 			{
 				int skip = (pageNumber - 1) * pageSize;
@@ -209,11 +220,11 @@ namespace GlorriJob.Persistence.Implementations.Services
 			};
 		}
 
-		public async Task<BaseResponse<DepartmentUpdateDto>> UpdateAsync(Guid id, DepartmentUpdateDto departmentUpdateDto)
+		public async Task<BaseResponse<object>> UpdateAsync(Guid id, DepartmentUpdateDto departmentUpdateDto)
 		{
 			if (id != departmentUpdateDto.Id)
 			{
-				return new BaseResponse<DepartmentUpdateDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = "Id does not match with the root.",
@@ -226,7 +237,7 @@ namespace GlorriJob.Persistence.Implementations.Services
 
 			if (!validationResult.IsValid)
 			{
-				return new BaseResponse<DepartmentUpdateDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
 					Message = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
@@ -236,36 +247,46 @@ namespace GlorriJob.Persistence.Implementations.Services
 			var department = await _departmentRepository.GetByIdAsync(id);
 			if (department is null || department.IsDeleted)
 			{
-				return new BaseResponse<DepartmentUpdateDto>
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = "The department does not exist.",
-					Data = null
+					Message = "The department does not exist."
 				};
 			}
-			// branch check
-			var existingDepartment = await _departmentRepository.GetByFilter(
-		expression: d => d.Name.ToLower() == departmentUpdateDto.Name.ToLower() && d.Id != id && !d.IsDeleted,
-		isTracking: false);
-
-			if (existingDepartment != null)
+			var branch = await _branchRepository.GetByIdAsync(departmentUpdateDto.BranchId);
+			if (branch is null)
 			{
-				return new BaseResponse<DepartmentUpdateDto>
+				new BaseResponse<object>
+				{
+					StatusCode = HttpStatusCode.NotFound,
+					Message = "The branch does not exist"
+				};
+			}
+			var existingDepartment = await _departmentRepository.GetByFilter(
+			expression: d => department.Name.ToLower() != departmentUpdateDto.Name.ToLower() && 
+			d.Name.ToLower() == departmentUpdateDto.Name.ToLower() && 
+			d.BranchId == departmentUpdateDto.BranchId &&
+			d.Id != id && 
+			!d.IsDeleted,
+			isTracking: false);
+
+			if (existingDepartment is not null)
+			{
+				return new BaseResponse<object>
 				{
 					StatusCode = HttpStatusCode.BadRequest,
-					Message = $"A department with the name '{departmentUpdateDto.Name}' already exists.",
-					Data = null
+					Message = $"A department with the name '{departmentUpdateDto.Name}' already exists in the branch."
 				};
 			}
 
 			department.Name = departmentUpdateDto.Name;
+			_departmentRepository.Update(department);
 			await _departmentRepository.SaveChangesAsync();
 
-			return new BaseResponse<DepartmentUpdateDto>
+			return new BaseResponse<object>
 			{
 				StatusCode = HttpStatusCode.OK,
-				Message = "The department is successfully updated.",
-				Data = departmentUpdateDto
+				Message = "The department is successfully updated."
 			};
 
 		}
