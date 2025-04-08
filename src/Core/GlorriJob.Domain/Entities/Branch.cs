@@ -14,6 +14,8 @@ namespace GlorriJob.Domain.Entities
 		public bool IsMain { get; set; }
 		public Guid CityId { get; set; }
 		public City City { get; set; } = null!;
+		public Guid CompanyId { get; set; }
+		public Company Company { get; set; } = null!;
 		public ICollection<Department> Departments { get; set; } = null!;
 		public ICollection<Vacancy> Vacancies { get; set; } = null!;
 	}
